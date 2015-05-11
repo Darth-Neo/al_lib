@@ -13,18 +13,20 @@ import random
 import time
 
 from Logger import *
+
 logger = setupLogging(__name__)
 logger.setLevel(INFO)
 
 from nl_lib.Concepts import Concepts
 
-from Constants import *
-
 from lxml import etree
+
 from openpyxl import Workbook
 from openpyxl import load_workbook
 from openpyxl.compat import range
 from openpyxl.cell import get_column_letter
+
+from Constants import *
 
 
 #

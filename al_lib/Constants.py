@@ -11,14 +11,8 @@ import time
 #
 # Script to reset Neo4J
 #
-
-from sys import platform as _platform
-if _platform == "linux" or _platform == "linux2":
-    resetNeo4J = u"/home/james.morris/bin/reset.sh"
-elif _platform == "darwin":
-    resetNeo4J = u"/Users/morrj140/Development/neo4j/bin/reset.sh"
-elif _platform == "win32":
-    resetNeo4J = "n/a"
+#resetNeo4J = u"/Users/morrj140/Development/neo4j/bin/reset.sh"
+resetNeo4J = u"/home/james.morris/bin/reset.sh"
 
 #
 # IP of Neo4J Graph

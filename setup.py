@@ -48,4 +48,4 @@ setup(name='al_lib',
 
     # List run-time dependencies here.  These will be installed by pip when your
     # project is installed.
-    install_requires=['lxml', 'pytest-cov', 'pytest'],)
+    install_requires=['nl_lib', 'lxml', 'pytest-cov', 'pytest'],)
