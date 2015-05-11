@@ -12,9 +12,9 @@ if __name__ == u"__main__":
 
     logger.info("Current Directory %s[%s]" % (os.getcwd(), rp))
     
-    # os.chdir("../nl_lib")
-    # lib = u"%s%s..%s%s" % (os.getcwd(), os.sep, os.sep, "nl_lib")
-    # os.chdir(lib)
+    os.chdir("./al_lib")
+    lib = u"%s%s..%s%s" % (os.getcwd(), os.sep, os.sep, "al_lib")
+    os.chdir(lib)
 
     # options in setup.cfg
     pytest.main()

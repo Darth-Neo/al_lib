@@ -7,14 +7,14 @@ import re
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-setup(name='al_Archilib',
+setup(name='al_lib',
       version='0.1',
       description='Tools for Processing Archimate Models',
-      url='http://github.com/darth-neo/ArchiConcepts',
+      url='http://github.com/darth-neo/al_lib',
       author='Darth Neo',
       author_email=u'morrisspid.james@gmail.com',
       license='MIT',
-      packages=['al_ArchiLib'],
+      packages=['al_Lib'],
       zip_safe=False,
 
       classifiers=[
