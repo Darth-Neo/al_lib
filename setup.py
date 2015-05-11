@@ -1,4 +1,9 @@
-__author__ = u'morrj140'
+#!/usr/bin/env python
+#
+# Concept Class for Archimate Library
+#
+__VERSION__ = '0.3'
+__author__ = 'morrj140'
 
 from setuptools import setup, find_packages
 import codecs
@@ -8,21 +13,21 @@ import re
 here = os.path.abspath(os.path.dirname(__file__))
 
 setup(name='al_lib',
-      version='0.1',
-      description='Tools for Processing Archimate Models',
+      version=__VERSION__,
+      description='Tools for Processing Archimate XML',
       url='http://github.com/darth-neo/al_lib',
       author='Darth Neo',
-      author_email=u'morrisspid.james@gmail.com',
+      author_email='morrisspid.james@gmail.com',
       license='MIT',
-      packages=['al_Lib'],
+      packages=['al_lib'],
       zip_safe=False,
-
+      
       classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 3 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
@@ -39,11 +44,8 @@ setup(name='al_lib',
     ],
 
     # What does your project relate to?
-    keywords='Archimate XML Models Processing',
+    keywords='ARCHMATE setuptools development',
 
     # List run-time dependencies here.  These will be installed by pip when your
     # project is installed.
-    install_requires=['nltk', 'networkx', 'py2neo', 'lxml', 'openpyxl', 'pygraphviz', 'python-pptx', 'python-docx',
-                        'pytest', ],)
-
-
+    install_requires=['lxml', 'pytest-cov', 'pytest'],)
