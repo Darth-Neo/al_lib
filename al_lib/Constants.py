@@ -117,3 +117,12 @@ folders = {u"Business", u"Application", u"Technology", u"Motivation", u"Implemen
 
 DIAGRAM_MODEL = u"archimate:ArchimateDiagramModel"
 DIAGRAM_OBJECT = u"archimate:DiagramObject"
+
+# Reset Script for Neo4j
+from sys import platform as _platform
+if _platform == "linux" or _platform == "linux2":
+    resetNeo4J = u"/home/james.morris/bin/reset.sh"
+elif _platform == "darwin":
+    resetNeo4J = u"/Users/morrj140/Development/neo4j/bin/reset.sh"
+elif _platform == "win32":
+    resetNeo4J = "n/a"

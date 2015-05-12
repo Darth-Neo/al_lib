@@ -41,13 +41,15 @@ class ConceptsImportNeo4J(object):
         self.nj = Neo4JLib(gdb, fileCSVExport)
 
         if ClearNeo4J is True:
-            self.clearNeo4J()
+            try:
+                self.clearNeo4J()
+            except:
+                self.graph.clearGraphDB()
 
         logger.info(u"Neo4J instance : %s" % gdb)
         self.graph = Neo4JGraph(gdb)
 
-        if ClearNeo4J is True:
-            self.graph.clearGraphDB()
+
 
     def addGraphNodes(self, concepts, n=0, threshold=1):
         n += 1
