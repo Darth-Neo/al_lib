@@ -271,7 +271,7 @@ class Neo4JLib(object):
                 logger.info(u"%s[%s]" % (x[0], x[1]))
                 concepts.addConceptKeyType(x[0], x[1])
             else:
-                logger.warn(u"Not a standard node : %s" % x)
+                logger.warn(u"Not a standard node : %d : %s" % (len(x), x))
 
         # Match r relations
         qs = u"match n-[r]-m return n, r, m"
@@ -282,7 +282,7 @@ class Neo4JLib(object):
                 logger.info(u"%s[%s]" % (x[0], x[1]))
                 concepts.addConceptKeyType(x[0], x[1])
             else:
-                logger.warn(u"Not a standard node : %s" % x)
+                logger.warn(u"Not a standard node : %d : %s" % (len(x), x))
 
         Concepts.saveConcepts(concepts, fileNodes)
 
