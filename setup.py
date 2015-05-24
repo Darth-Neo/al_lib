@@ -19,7 +19,7 @@ setup(name='al_lib',
       author='Darth Neo',
       author_email='morrisspid.james@gmail.com',
       license='MIT',
-      packages=['al_lib'],
+      packages=['al_lib',],
       zip_safe=False,
       
       classifiers=[

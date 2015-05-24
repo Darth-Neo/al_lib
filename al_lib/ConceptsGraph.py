@@ -100,7 +100,6 @@ def test_ConceptsGraph():
         logger.info(u"File does not exist : %s" % conceptFile)
 
     else:
-        c = Concepts(u"GraphConcepts", "GRAPH")
         concepts = Concepts.loadConcepts(conceptFile)
 
         cg = ConceptsGraph(fileImage=fileImageExport)
