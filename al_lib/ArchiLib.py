@@ -596,7 +596,7 @@ class ArchiLib(object):
         # To Do - stop duplicating properties
 
         idd = properties[u"ID"]
-        node = self.findElementByID(idd)
+        node = self.findElementByID(idd)[0]
 
         n = 0
         for key, value in properties.items():
@@ -605,7 +605,7 @@ class ArchiLib(object):
                 prop[u"key"] = key
                 prop[u"value"] = value
                 elm = etree.Element(u"property", prop, nsmap=NS_MAP)
-                node[0].insert(n, elm)
+                node.insert(n, elm)
                 n += 1
 
     def insertNColumns(self, folder, subfolder, fileMetaEntity):
@@ -649,7 +649,7 @@ class ArchiLib(object):
                 continue
 
             logger.info(u"----------------------------------------------------------------------------------------")
-            logger.debugu(u"rownum : %d" % rownum)
+            logger.debug(u"rownum : %d" % rownum)
             logger.debug(u"row    : %s" % row)
 
             p = None
