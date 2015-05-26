@@ -605,7 +605,7 @@ class ArchiLib(object):
 
         n = 0
         for key, value in properties.items():
-            if key != u"ID"and node.get(key) is None:
+            if key != u"ID" and node.get(key) is None:
                 prop = dict()
                 prop[u"key"] = key
                 prop[u"value"] = value
@@ -952,11 +952,9 @@ class ArchiLib(object):
 
         # measure process time
         timeTaken = end_time - start_time
-
-        minutes = timeTaken % 60
-        hours = minutes / 60
-        seconds = timeTaken - (minutes * 60.0)
-        logger.info(u"Process Time = %4.2f seconds, %d Minute(s), %d hours" % (timeTaken, minutes, hours))
+        seconds = timeTaken % 60
+        minutes = timeTaken / 60
+        logger.info(u"Process Time = %4.2f seconds, %d Minute(s), %d seconds" % (timeTaken, minutes, seconds))
 
 if __name__ == u"__main__":
     fileArchimate = u"test" + os.sep + u"Testing.archimate"
