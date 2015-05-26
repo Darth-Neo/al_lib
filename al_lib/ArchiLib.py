@@ -177,6 +177,11 @@ class ArchiLib(object):
         stp = self.tree.xpath(xp)
         return stp
 
+    def findProperties(self):
+        xp = u"//property"
+        stp = self.tree.xpath(xp)
+        return stp
+
     def findElement(self, name):
         xp = u"//element[@name='%s']" % name.rstrip(u" ").lstrip(u" ")
         stp = self.tree.xpath(xp)
