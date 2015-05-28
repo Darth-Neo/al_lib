@@ -954,7 +954,8 @@ class ArchiLib(object):
         timeTaken = end_time - start_time
         seconds = timeTaken % 60
         minutes = timeTaken / 60
-        logger.info(u"Process Time = %4.2f seconds, %d Minute(s), %d seconds" % (timeTaken, minutes, seconds))
+        hours   = minutes / 60
+        logger.info(u"Process Time = %4.2f seconds, of %d Hours, %d Minute(s), %d Seconds" % (timeTaken, hours, minutes, seconds))
 
 if __name__ == u"__main__":
     fileArchimate = u"test" + os.sep + u"Testing.archimate"
