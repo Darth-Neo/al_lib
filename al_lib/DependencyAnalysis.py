@@ -131,7 +131,7 @@ class DependancyAnalysis(object):
                 e = concepts.addConceptKeyType(lemmaWord, u"Word")
                 f = e.addConceptKeyType(pos, u"POS")
 
-    def dependancyAnalysis(self):
+    def collectDependancyAnalysisNodes(self):
 
         count = 0
         listTSort = list()
@@ -187,6 +187,12 @@ class DependancyAnalysis(object):
         logger.debug(u"Edges = %s" % listTSort)
 
         Concepts.saveConcepts(self.concepts, fileConceptsTraversal)
+
+        self.dependancyAnalysis(listTSort)
+
+        return self.concepts, listTSort
+
+    def dependancyAnalysis(self, listTSort):
 
         index = 0
         for x in listTSort:

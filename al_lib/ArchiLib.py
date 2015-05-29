@@ -324,23 +324,6 @@ class ArchiLib(object):
 
         return concepts
 
-    #
-    # Model functions via dictionaries
-    #
-    def logTypeCounts(self, ListOnly=False):
-        if not ListOnly:
-            logger.info(u"Type Counts")
-
-        listCounts = self.dictCount.items()
-
-        if not ListOnly:
-            for x in sorted(listCounts, key=lambda c: abs(c[1]), reverse=True):
-                if x[1] > 1:
-                    logger.info(u"  %d - %s" % (x[1], x[0]))
-
-            logger.info(u" ")
-
-        return listCounts
 
     def countNodeType(self, type):
         if self.dictCount.has_key(type):
@@ -519,17 +502,18 @@ class ArchiLib(object):
     #
     # Model functions via dictionaries
     #
-    def logTypeCounts(self):
-        listCounts = list()
+    def logTypeCounts(self, ListOnly=False):
+        if not ListOnly:
+            logger.info(u"Type Counts")
 
-        logger.info(u"Type Counts")
         listCounts = self.dictCount.items()
 
-        for x in sorted(listCounts, key=lambda c: abs(c[1]), reverse=True):
-            if x[1] > 1:
-                logger.info(u" %d - %s" % (x[1], x[0]))
+        if not ListOnly:
+            for x in sorted(listCounts, key=lambda c: abs(c[1]), reverse=True):
+                if x[1] > 1:
+                    logger.info(u"  %d - %s" % (x[1], x[0]))
 
-        logger.info(u" ")
+            logger.info(u" ")
 
         return listCounts
 
@@ -954,7 +938,12 @@ class ArchiLib(object):
         timeTaken = end_time - start_time
         seconds = timeTaken % 60
         minutes = timeTaken / 60
-        hours   = minutes / 60
+        if minutes < 60:
+            hours   = 0
+        else:
+            hours   = minutes / 60
+            minutes = minutes % 60
+
         logger.info(u"Process Time = %4.2f seconds, of %d Hours, %d Minute(s), %d Seconds" % (timeTaken, hours, minutes, seconds))
 
 if __name__ == u"__main__":
