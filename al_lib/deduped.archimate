@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="Testing" id="67b1c7ee" version="3.0.0">
   <folder name="Business" id="37b15cbd" type="business">
     <folder name="Scenarios" id="4491d143">
@@ -13,7 +12,6 @@
       <element xsi:type="archimate:BusinessProcess" id="fcd79100" name="Rate Lead Potential "/>
       <element xsi:type="archimate:BusinessProcess" id="3e6753ee" name="Update Lead Contact Information "/>
       <element xsi:type="archimate:BusinessProcess" id="8157e8a3" name="Reserve Tour For Lead "/>
-      <element xsi:type="archimate:BusinessProcess" id="1dbde9b0" name="Contact Leeds"/>
     </folder>
     <folder name="Business Entities" id="993d9e6b">
       <element xsi:type="archimate:BusinessObject" id="585c1169" name="Do Not Market "/>
@@ -36,7 +34,6 @@
       <element xsi:type="archimate:ApplicationComponent" id="ed632c4e" name="Credit Check"/>
       <element xsi:type="archimate:ApplicationComponent" id="b0ffbd1c" name="Market No-List"/>
       <element xsi:type="archimate:ApplicationComponent" id="6aa0e0ed" name="SalesForce.com "/>
-      <element xsi:type="archimate:ApplicationComponent" id="72ad5206" name="Credit Check"/>
     </folder>
     <folder name="Data" id="b4511356">
       <element xsi:type="archimate:DataObject" id="060a4f92" name="Do-Not Market List"/>
@@ -45,7 +42,6 @@
       <element xsi:type="archimate:DataObject" id="408e9ae1" name="Tour"/>
       <element xsi:type="archimate:DataObject" id="105a8bab" name="Tour Schedule"/>
     </folder>
-    <element xsi:type="archimate:DataObject" id="ef3e1dff" name="Prospect"/>
   </folder>
   <folder name="Technology" id="f1b679fa" type="technology"/>
   <folder name="Motivation" id="cf324e74" type="motivation">
@@ -89,7 +85,6 @@
     <element xsi:type="archimate:AccessRelationship" id="9b58716c" source="6aa0e0ed" target="722f4f47"/>
     <element xsi:type="archimate:AccessRelationship" id="78e4ea11" source="ed632c4e" target="703c115d"/>
     <element xsi:type="archimate:AccessRelationship" id="5574ab4e" source="6aa0e0ed" target="408e9ae1"/>
-    <element xsi:type="archimate:AccessRelationship" id="eaa64770" source="72ad5206" target="ef3e1dff"/>
   </folder>
   <folder name="Views" id="f8e342d3" type="diagrams">
     <folder name="1. Business " id="f64b1d2e">
@@ -215,16 +210,6 @@
         </child>
         <child xsi:type="archimate:DiagramObject" id="1bb0bcc3" textAlignment="2" targetConnections="039ef7bf" archimateElement="408e9ae1">
           <bounds x="1008" y="513" width="120" height="55"/>
-        </child>
-        <child xsi:type="archimate:DiagramObject" id="76d7fc4e" textAlignment="2" lineColor="#afafaf" fillColor="#00ffff" archimateElement="72ad5206">
-          <bounds x="204" y="393" width="120" height="55"/>
-          <sourceConnection xsi:type="archimate:Connection" id="09eb4204" lineColor="#b1b1b1" source="76d7fc4e" target="af5392f9" relationship="eaa64770"/>
-        </child>
-        <child xsi:type="archimate:DiagramObject" id="d71abede" textAlignment="2" lineColor="#afafaf" fillColor="#ffff00" archimateElement="1dbde9b0">
-          <bounds x="60" y="393" width="120" height="55"/>
-        </child>
-        <child xsi:type="archimate:DiagramObject" id="af5392f9" textAlignment="2" lineColor="#afafaf" targetConnections="09eb4204" fillColor="#00ffff" archimateElement="ef3e1dff">
-          <bounds x="204" y="536" width="120" height="55"/>
         </child>
       </element>
     </folder>

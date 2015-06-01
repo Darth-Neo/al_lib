@@ -10,6 +10,8 @@ logger.setLevel(INFO)
 from Constants import *
 from ArchiLib import ArchiLib
 
+import pytest
+
 def saveList(nl, listFile):
     try:
         logger.debug(u"Saving  : %s" % (listFile))
@@ -174,17 +176,14 @@ def replaceDuplicateRelations(al, td):
                                     (dea.get(ARCHI_TYPE)[10:], name, id, nameElement, elementID))
                         dea.set(u"target", elementID)
 
-if __name__ == u"__main__":
+@pytest.mark.Archi
+def test_DedupArchimateXML ():
 
-    fileArchimate = u"/Users/morrj140/Documents/SolutionEngineering/Archimate Models/DVC v48.archimate"
+    fileArchimate = u"test" + os.sep + u"Testing.archimate"
 
-    fileOutput = u"deduped.archimate"
-
-    fileArchimate = fileOutput
+    fileOutput = u"test" + os.sep + u"deduped.archimate"
 
     al = ArchiLib(fileArchimate)
-
-    # al.logTypeCounts()
 
     ae = al.findElements()
 
@@ -198,7 +197,28 @@ if __name__ == u"__main__":
 
     replaceDuplicateRelations(al, tde)
 
-    # al.logTypeCounts()
+    if fileArchimate != fileOutput:
+        al.outputXMLtoFile(fileOutput)
+
+if __name__ == u"__main__":
+
+    fileArchimate = u"/Users/morrj140/Documents/SolutionEngineering/Archimate Models/DVC v48.archimate"
+
+    fileOutput = u"deduped.archimate"
+
+    al = ArchiLib(fileArchimate)
+
+    ae = al.findElements()
+
+    logger.info(u"Length : %d" % len(ae))
+
+    dupElements = findDups(ae)
+
+    tde, tdr = logDupElements(dupElements)
+
+    replaceDuplicateElements(al, tde)
+
+    replaceDuplicateRelations(al, tde)
 
     if fileArchimate != fileOutput:
         al.outputXMLtoFile(fileOutput)

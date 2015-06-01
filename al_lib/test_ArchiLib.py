@@ -123,8 +123,8 @@ def test_ExportArchi(cleandir):
     logger.info(u"Found %d Nodes" % len(al.dictNodes))
     logger.info(u"Found %d Edges" % len(al.dictEdges))
 
-    assert (len(al.dictNodes) == 42)
-    assert (len(al.dictEdges) == 35)
+    assert (len(al.dictNodes) == 45)
+    assert (len(al.dictEdges) == 36)
 
     count = 0
     listTSort = list()
