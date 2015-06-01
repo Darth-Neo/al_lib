@@ -178,6 +178,10 @@ if __name__ == u"__main__":
 
     fileArchimate = u"/Users/morrj140/Documents/SolutionEngineering/Archimate Models/DVC v48.archimate"
 
+    fileOutput = u"deduped.archimate"
+
+    fileArchimate = fileOutput
+
     al = ArchiLib(fileArchimate)
 
     # al.logTypeCounts()
@@ -196,6 +200,7 @@ if __name__ == u"__main__":
 
     # al.logTypeCounts()
 
-    al.outputXMLtoFile(u"deduped.archimate")
+    if fileArchimate != fileOutput:
+        al.outputXMLtoFile(fileOutput)
 
 
