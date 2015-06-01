@@ -112,30 +112,39 @@ def replaceDuplicateElements(al, td):
     # replace duplicate elements
     for k, v in td.items():
         elementID = v[0]
+        element = al.findElementByID(elementID)[0]
+        nameElement = element.get(u"name")
+
+        logger.info(u"Consolidating : %s" % element.get(u"name"))
 
         # replace where used in a DiagramObject
         for ni in v[1:]:
+            ae = al.findElementByID(ni)[0]
+            niname = ae.get(u"name")
+
             de = al.findArchimateElement(ni)
 
             if de is None:
+                logger.warn(u"No Archimate Elements : %s - de" % ni)
                 continue
 
-            try:
-                dee = de[0]
-            except:
-                logger.warn(u"No Archimate Elements : %s" % ni)
-                continue
-
-            for dea in dee:
+            # remove all DiagramObjects pointing to dump element
+            for dea in de:
                 if dea.get(ARCHI_TYPE) == u"archimate:DiagramObject":
-                    logger.info(u"replace %s with %s" % (ni, elementID))
-                    dee.set(u"archimateElement", elementID)
+                    logger.info(u"    replace '%s[%s]' **with** '%s[%s]'" %
+                                (niname, dea.get(u"id"), nameElement, elementID))
+
+                    dea.set(u"archimateElement", elementID)
+                else:
+                    logger.info(u"skipped : %s" % dea.get(ARCHI_TYPE))
 
 def replaceDuplicateRelations(al, td):
 
     # replace duplicate elements
     for k, v in td.items():
         elementID = v[0]
+        element = al.findElementByID(elementID)[0]
+        nameElement = element.get(u"name")
 
         # replace where used in a DiagramObject
         for ni in v[1:]:
@@ -147,21 +156,31 @@ def replaceDuplicateRelations(al, td):
 
             for dea in de:
                 if dea.get(ARCHI_TYPE)[10:] in relations:
+
                     if dea.get(u"source") == ni:
-                        logger.info(u"replace source %s with %s" % (ni, elementID))
+                        na = al.findElementByID(ni)[0]
+                        name = na.get(u"name")
+                        id = na.get(u"id")
+                        logger.info(u"    %s : replace source '%s[%s]' **with** '%s[%s]'" %
+                                    (dea.get(ARCHI_TYPE)[10:], name, id, nameElement, elementID))
+
                         dea.set(u"source", elementID)
 
                     elif dea.get(u"target") == ni:
-                        logger.info(u"replace target %s with %s" % (ni, elementID))
+                        na = al.findElementByID(ni)[0]
+                        name = na.get(u"name")
+                        id = na.get(u"id")
+                        logger.info(u"    %s : replace target '%s[%s]' **with** '%s[%s]'" %
+                                    (dea.get(ARCHI_TYPE)[10:], name, id, nameElement, elementID))
                         dea.set(u"target", elementID)
 
 if __name__ == u"__main__":
 
-    fileArchimate = u"/Users/morrj140/Documents/SolutionEngineering/Archimate Models/DVC v47.archimate"
+    fileArchimate = u"/Users/morrj140/Documents/SolutionEngineering/Archimate Models/DVC v48.archimate"
 
     al = ArchiLib(fileArchimate)
 
-    al.logTypeCounts()
+    # al.logTypeCounts()
 
     ae = al.findElements()
 
@@ -175,6 +194,8 @@ if __name__ == u"__main__":
 
     replaceDuplicateRelations(al, tde)
 
+    # al.logTypeCounts()
+
     al.outputXMLtoFile(u"deduped.archimate")
 
-    al.logTypeCounts()
+
