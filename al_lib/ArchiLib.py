@@ -41,17 +41,20 @@ class ArchiLib(object):
 
     def __init__(self, fileArchimate):
 
-        if fileArchimate != None:
-            self.fileArchimate = fileArchimate
+        if os.path.isfile(fileArchimate) is False:
+             raise IOError(u"File not found")
         else:
-            self.fileArchimate = fileArchimate
+            if fileArchimate != None:
+                self.fileArchimate = fileArchimate
+            else:
+                self.fileArchimate = fileArchimate
 
-        etree.QName(ARCHIMATE_NS, u'model')
+            etree.QName(ARCHIMATE_NS, u'model')
 
-        self.tree = etree.parse(self.fileArchimate)
+            self.tree = etree.parse(self.fileArchimate)
 
-        # Populate Dictionaries for easier code
-        self.parseAll()
+            # Populate Dictionaries for easier code
+            self.parseAll()
 
     def outputXMLtoFile(self, filename=u"import_artifacts.archimate"):
         output = StringIO.StringIO()

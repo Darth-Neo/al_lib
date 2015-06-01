@@ -82,6 +82,8 @@ def findDups(ae):
 
     for x in ae:
 
+        dedupProperties(x)
+
         xa = x.attrib
 
         try:
@@ -176,6 +178,34 @@ def replaceDuplicateRelations(al, td):
                                     (dea.get(ARCHI_TYPE)[10:], name, id, nameElement, elementID))
                         dea.set(u"target", elementID)
 
+def dedupProperties(parent):
+
+    pa = parent.attrib
+    children = parent.getchildren()
+
+    dpa = dict()
+
+    child_list = list()
+
+    # get all properties
+    for child in children:
+
+        tag = child.tag
+        key = child.get(u"key")
+        value = child.get(u"value")
+
+        logger.debug(u"<%s %s[%s]/>" % (tag, key, value))
+
+        if key in dpa and dpa[key] == value:
+            child_list.append(child)
+        else:
+            dpa[key] = value
+
+    for child in child_list:
+        logger.info(u"Removing duplicate child - %s[%s]" % (child.get(u"key"), child.get(u"value")))
+        parent.remove(child)
+
+
 @pytest.mark.Archi
 def test_DedupArchimateXML ():
 
@@ -202,7 +232,7 @@ def test_DedupArchimateXML ():
 
 if __name__ == u"__main__":
 
-    fileArchimate = u"/Users/morrj140/Documents/SolutionEngineering/Archimate Models/DVC v48.archimate"
+    fileArchimate = u"/Users/morrj140/Documents/SolutionEngineering/Archimate Models/DVC v49.archimate"
 
     fileOutput = u"deduped.archimate"
 
