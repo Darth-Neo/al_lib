@@ -99,7 +99,7 @@ class ArchiLib(object):
             nl = strLine[:-1]
 
             logger.debug(u"%s" % nl)
-            f.write(nl + u"\n")
+            f.write(nl + u"%s" % os.linesep)
 
         f.close()
         logger.info(u"Save Model : %s" % self.fileExport)
@@ -130,17 +130,6 @@ class ArchiLib(object):
     #
     # Model transversal functions via XPath
     #
-    def findDiagramModelByName(self, name):
-        r = None
-
-        xp = u"//element[@name='" + name + u"']"
-        stp = self.tree.xpath(xp)
-
-        if stp[0].get(ARCHI_TYPE) == DIAGRAM_MODEL:
-            r = stp[0]
-
-        return r
-
     def findRelationsByID(self, id, Target=False):
         if Target is False:
             xp = u"//element[@source='%s']" % (id)
@@ -161,15 +150,16 @@ class ArchiLib(object):
         return stp
 
     def findDiagramModelByName(self, name):
-        xp = u"//element[@name='%s']" % (name)
-        logger.debug(u"xp : %s" % xp)
+        r = None
+        xp = u"//element[@name='" + name + u"']"
         stp = self.tree.xpath(xp)
+        if stp[0].get(ARCHI_TYPE) == DIAGRAM_MODEL:
+            r = stp[0]
+        return r
 
-        for x in stp:
-            if x.get(ARCHI_TYPE) == DIAGRAM_MODEL:
-                stp = x
-                break
-
+    def findArchimateElement(self, id):
+        xp = u"//child[@archimateElement='%s']" % id
+        stp = self.tree.xpath(xp)
         return stp
 
     def findDiagramObject(self, id):
@@ -179,6 +169,11 @@ class ArchiLib(object):
 
     def findProperties(self):
         xp = u"//property"
+        stp = self.tree.xpath(xp)
+        return stp
+
+    def findElements(self):
+        xp = u"//element"
         stp = self.tree.xpath(xp)
         return stp
 
