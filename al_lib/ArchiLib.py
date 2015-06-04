@@ -627,7 +627,10 @@ class ArchiLib(object):
             if rownum == 0:
                 rownum += 1
                 for col in row:
-                    if col[:8] == u"Property":
+                    if col[:4] == u"Line":
+                        colType = col
+                        listColumnHeaders.append(colType)
+                    elif col[:8] == u"Property":
                         colType = col
                         listColumnHeaders.append(colType)
                     else:
@@ -654,6 +657,21 @@ class ArchiLib(object):
                         properties[u"ID"] = p
 
                     properties[listColumnHeaders[colnum][9:]] = CM
+
+                    colnum += 1
+                    continue
+
+                if listColumnHeaders[colnum][:4] == u"Line":
+                    logger.debug(u"Properties : %s - %s" % (listColumnHeaders[colnum][4:], CM))
+
+                    if u"ID" not in properties:
+                        properties[u"ID"] = p
+
+                    n = 0
+                    for line in CM.splitlines():
+                        n += 1
+                        name = u"%d%s" % (n, listColumnHeaders[colnum][4:])
+                        properties[name] = line
 
                     colnum += 1
                     continue
