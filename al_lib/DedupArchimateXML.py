@@ -62,27 +62,17 @@ def logDupElements(dupElements):
             if at[10:] not in relations:
                 logger.debug(u"%s[%s] => %d" % (name, at, len(v)))
                 tde[k] = v
-            else:
-                logger.debug(u"%s[%s] => %d" % (name, at, len(v)))
-                tdr[k] = v
 
     saveList(tde, u"Archimate_Duplicate_Elements.lp")
-    saveList(tdr, u"Archimate_Duplicate_Relations.lp")
 
     logger.info(u"--------%d Elements Duplicated--------" % len(tde))
-    logEntities(tde)
 
-    logger.info(u"--------%d Relations Duplicated--------" % len(tdr))
-    logEntities(tdr)
-
-    return tde, tdr
+    return tde
 
 def findDups(ae):
     dupElements = dict()
 
     for x in ae:
-
-        dedupProperties(x)
 
         xa = x.attrib
 
@@ -95,21 +85,68 @@ def findDups(ae):
         except Exception, e:
             if xa[ARCHI_TYPE] in relations:
                 logger.error(u"%s - %s[%s]" % (type(e), e.message, xa[ARCHI_TYPE]))
-
             continue
 
         logger.debug(u"%s - %s" % (x.get(ARCHI_TYPE), x.attrib))
 
-        if nat in dupElements:
-            logger.debug(u"Duplicate - %s[%d]" % (name, len(dupElements[nat])))
-            vl = dupElements[nat]
-            vl.append(id)
-        else:
-            dl = list()
-            dl.append(id)
-            dupElements[nat] = dl
+        if at[10:] not in relations:
+            if nat in dupElements:
+                logger.debug(u"Duplicate - %s[%d]" % (name, len(dupElements[nat])))
+                vl = dupElements[nat]
+                vl.append(id)
+            else:
+                dl = list()
+                dl.append(id)
+                dupElements[nat] = dl
 
     return dupElements
+
+
+def replaceDuplicateProperties(al):
+
+    properties = al.findProperties()
+
+    pd = dict()
+    for x in properties:
+        parent = x.getparent()
+
+        if parent in pd:
+            p = pd[parent]
+            pd[parent] = p + 1
+        else:
+            pd[parent] = 1
+
+    logger.debug(u"Found %d properties duplicated" % len(pd))
+
+    for parent in pd.keys():
+
+        if parent.get(ARCHI_TYPE)[:10] in relations:
+            continue
+
+        pa = parent.attrib
+        children = parent.getchildren()
+
+        dpa = dict()
+        child_list = list()
+
+        # get all properties
+        for child in children:
+
+            tag = child.tag
+            key = child.get(u"key")
+            value = child.get(u"value")
+
+            logger.debug(u"<%s %s[%s]/>" % (tag, key, value))
+
+            if key in dpa and dpa[key] == value:
+                child_list.append(child)
+            else:
+                dpa[key] = value
+
+        logger.info(u"Removing %d Duplicate Properties - %s[%s]" % (len(child_list), pa[u"name"], pa[u"id"]))
+
+        for child in child_list:
+            parent.remove(child)
 
 def replaceDuplicateElements(al, td):
 
@@ -119,7 +156,7 @@ def replaceDuplicateElements(al, td):
         element = al.findElementByID(elementID)[0]
         nameElement = element.get(u"name")
 
-        logger.info(u"Consolidating : %s" % element.get(u"name"))
+        logger.info(u"Removing %d Duplicate Elements - %s[%s]" % (len(v[1:]),  element.get(u"name"), element.get(u"id")))
 
         # replace where used in a DiagramObject
         for ni in v[1:]:
@@ -135,76 +172,80 @@ def replaceDuplicateElements(al, td):
             # remove all DiagramObjects pointing to dump element
             for dea in de:
                 if dea.get(ARCHI_TYPE) == u"archimate:DiagramObject":
-                    logger.info(u"    replace '%s[%s]' **with** '%s[%s]'" %
+                    logger.debug(u"    replace '%s[%s]' **with** '%s[%s]'" %
                                 (niname, dea.get(u"id"), nameElement, elementID))
+
+                    replaceDuplicateRelations(al, dea.get(u"id"), elementID)
 
                     dea.set(u"archimateElement", elementID)
                 else:
                     logger.info(u"skipped : %s" % dea.get(ARCHI_TYPE))
 
-def replaceDuplicateRelations(al, td):
 
-    # replace duplicate elements
-    for k, v in td.items():
-        elementID = v[0]
-        element = al.findElementByID(elementID)[0]
-        nameElement = element.get(u"name")
+def replaceDuplicateRelations(al, oldID, newID):
 
-        # replace where used in a DiagramObject
-        for ni in v[1:]:
+    td = al.findRelationsByID(oldID, Target=True)
 
-            de = al.findRelationsByID(ni)
+    # replace duplicate relations
+    element = al.findElementByID(newID)[0]
+    nameElement = element.get(u"name")
 
-            if de is None:
-                continue
+    logger.info(u"Removing %d Duplicate Relations - %s[%s]" % (len(td),  element.get(u"name"), element.get(u"id")))
 
-            for dea in de:
-                if dea.get(ARCHI_TYPE)[10:] in relations:
+    for dea in td:
+        if dea.get(u"source") == oldID:
+            na = al.findElementByID(oldID)[0]
+            name = na.get(u"name")
+            id = na.get(u"id")
+            logger.info(u"    %s : replace source '%s[%s]' **with** '%s[%s]'" %
+                        (dea.get(ARCHI_TYPE)[10:], name, id, nameElement, newID))
 
-                    if dea.get(u"source") == ni:
-                        na = al.findElementByID(ni)[0]
-                        name = na.get(u"name")
-                        id = na.get(u"id")
-                        logger.info(u"    %s : replace source '%s[%s]' **with** '%s[%s]'" %
-                                    (dea.get(ARCHI_TYPE)[10:], name, id, nameElement, elementID))
+            dea.set(u"source", newID)
 
-                        dea.set(u"source", elementID)
+        elif dea.get(u"target") == oldID:
+            na = al.findElementByID(oldID)[0]
+            name = na.get(u"name")
+            id = na.get(u"id")
+            logger.info(u"    %s : replace target '%s[%s]' **with** '%s[%s]'" %
+                        (dea.get(ARCHI_TYPE)[10:], name, id, nameElement, newID))
+            dea.set(u"target", newID)
 
-                    elif dea.get(u"target") == ni:
-                        na = al.findElementByID(ni)[0]
-                        name = na.get(u"name")
-                        id = na.get(u"id")
-                        logger.info(u"    %s : replace target '%s[%s]' **with** '%s[%s]'" %
-                                    (dea.get(ARCHI_TYPE)[10:], name, id, nameElement, elementID))
-                        dea.set(u"target", elementID)
+def validateArchimateXML(al):
+    deleteNodes = list()
 
-def dedupProperties(parent):
+    # Collect all elements
+    # ae = al.findElements()
 
-    pa = parent.attrib
-    children = parent.getchildren()
+    folder = u"Relations"
+    eff = al.getElementsFromFolder(folder)[0]
+    ae = eff.getchildren()
 
-    dpa = dict()
+    n = len(ae)
+    # Find relations with source or target invalid
+    for node in ae:
+        if (n % 100) == 0:
+            logger.info(u"Count Down : %d" % n)
 
-    child_list = list()
+        n -= 1
+        logger.debug(u"Element - %s[%s]" % (node.get(ARCHI_TYPE)[10:], node.get(u"id")))
 
-    # get all properties
-    for child in children:
+        if node.get(ARCHI_TYPE)[10:] in relations:
+            id = node.get(u"id")
+            source = node.get(u"source")
+            target = node.get(u"target")
 
-        tag = child.tag
-        key = child.get(u"key")
-        value = child.get(u"value")
+            logger.debug(u"    Source[%s] - Target[%s]" % (source, target))
 
-        logger.debug(u"<%s %s[%s]/>" % (tag, key, value))
+            se = al.findElementByID(source)
+            te = al.findElementByID(target)
 
-        if key in dpa and dpa[key] == value:
-            child_list.append(child)
-        else:
-            dpa[key] = value
+            if se[0] == u" " or te[0] == u" ":
+                logger.info(u"Invalid Relation : %s" % node.get(u"id"))
+                deleteNodes.append(node)
 
-    for child in child_list:
-        logger.info(u"Removing duplicate child - %s[%s]" % (child.get(u"key"), child.get(u"value")))
-        parent.remove(child)
-
+    for node in deleteNodes:
+        logger.info(u"Remove : %s" % node.get(u"id"))
+        node.getparent().remove(node)
 
 @pytest.mark.Archi
 def test_DedupArchimateXML ():
@@ -227,12 +268,18 @@ def test_DedupArchimateXML ():
 
     replaceDuplicateRelations(al, tde)
 
-    if fileArchimate != fileOutput:
-        al.outputXMLtoFile(fileOutput)
+    validateArchimateXML(al)
+
+    al.outputXMLtoFile(fileOutput)
 
 if __name__ == u"__main__":
 
-    fileArchimate = u"/Users/morrj140/Documents/SolutionEngineering/Archimate Models/DVC v49.archimate"
+    # These were bad nodes in the file before anythng else
+    # Argh...
+    removeNodes = (u'd5805eef', u'58e158b8', u'e9f564f8', u'2f2190de', u'edf6ea10', u'5d99f417', u'f8d0a988',
+                   u'5f20e703', u'ed8313b6', u'3b11a056', u'ccfceb63', u'761b2d00')
+
+    fileArchimate = u"/Users/morrj140/Documents/SolutionEngineering/Archimate Models/DVC v51.archimate"
 
     fileOutput = u"deduped.archimate"
 
@@ -244,13 +291,14 @@ if __name__ == u"__main__":
 
     dupElements = findDups(ae)
 
-    tde, tdr = logDupElements(dupElements)
+    tde = logDupElements(dupElements)
 
     replaceDuplicateElements(al, tde)
 
-    replaceDuplicateRelations(al, tde)
+    replaceDuplicateProperties(al)
 
-    if fileArchimate != fileOutput:
-        al.outputXMLtoFile(fileOutput)
+    #validateArchimateXML(al)
+
+    al.outputXMLtoFile(fileOutput)
 
 
