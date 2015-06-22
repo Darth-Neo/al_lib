@@ -11,6 +11,8 @@ import StringIO
 import time
 import json
 
+import zipfile
+
 from Constants import *
 from Logger import *
 
@@ -237,6 +239,23 @@ def test_ExportArchiModel(cleandir):
     al.outputCSVtoFile(concepts, fileCSVExport)
     assert (os.path.isfile(fileCSVExport) is True)
 
+@pytest.mark.ArchiLib
+def test_ZipFile(cleandir):
+
+    logger.info(u"ZipTest : %s" % fileArchimateZipFileTest)
+
+    assert(zipfile.is_zipfile(fileArchimateTest) is False)
+
+    assert (zipfile.is_zipfile(fileArchimateZipFileTest) is True)
+
+    al = ArchiLib(fileArchimateZipFileTest)
+
+    listCounts = al.logTypeCounts()
+
+    assert(listCounts is not None)
+
+    logger.info(u"listCounts : %d" % len(listCounts))
+
 def goArchiLib():
 
     test_CheckForArchimateFile(cleandir)
@@ -244,6 +263,7 @@ def goArchiLib():
     test_ExportArchi(cleandir)
     test_ExportArchiFolderModels(cleandir)
     test_ExportArchiModel(cleandir)
+    test_ZipFile(cleandir)
 
 if __name__ == u"__main__":
     goArchiLib()

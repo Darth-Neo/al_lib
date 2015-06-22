@@ -41,6 +41,7 @@ directory = dirTest
 fileArchimateTest   = dirTest + u"Testing.archimate"
 fileArchimateModel  = directory + u'archi.archimate'
 fileArchimateImport = directory + u"import_artifacts.archimate"
+fileArchimateZipFileTest   = dirTest + u"Testing2.archimate"
 
 #
 # Concept Files Used

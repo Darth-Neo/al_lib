@@ -19,6 +19,8 @@ logger.setLevel(INFO)
 
 from nl_lib.Concepts import Concepts
 
+import zipfile
+import tempfile
 from lxml import etree
 
 from openpyxl import Workbook
@@ -38,6 +40,7 @@ class ArchiLib(object):
     dictNodes = dict()
     dictBP    = dict()
     dictCount = dict()
+    tree = None
 
     def __init__(self, fileArchimate):
 
@@ -51,7 +54,23 @@ class ArchiLib(object):
 
             etree.QName(ARCHIMATE_NS, u'model')
 
-            self.tree = etree.parse(self.fileArchimate)
+            if zipfile.is_zipfile(self.fileArchimate):
+
+                logger.info(u"Zip File : %s" % self.fileArchimate)
+
+                model = u"model.xml"
+
+                zf = zipfile.ZipFile(self.fileArchimate, 'r')
+
+                ef = tempfile.gettempdir() + os.sep + model
+
+                zf.extract(model, tempfile.gettempdir())
+
+                self.tree = etree.parse(ef)
+
+            else:
+                logger.info(u"File : %s" % self.fileArchimate)
+                self.tree = etree.parse(self.fileArchimate)
 
             # Populate Dictionaries for easier code
             self.parseAll()
@@ -102,7 +121,7 @@ class ArchiLib(object):
             nl = strLine[:-1]
 
             logger.debug(u"%s" % nl)
-            f.write(nl + u"%s" % os.linesep)
+            f.write("%s%s" % (nl, os.linesep))
 
         f.close()
         logger.info(u"Save Model : %s" % self.fileExport)
@@ -670,7 +689,7 @@ class ArchiLib(object):
                     n = 0
                     for line in CM.splitlines():
                         n += 1
-                        name = u"%d%s" % (n, listColumnHeaders[colnum][4:])
+                        name = u"%d.%s" % (n, listColumnHeaders[colnum][5:])
                         properties[name] = line
 
                     colnum += 1

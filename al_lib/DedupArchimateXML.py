@@ -77,9 +77,9 @@ def findDups(ae):
         xa = x.attrib
 
         try:
-            at = xa[ARCHI_TYPE]
-            id = xa[u"id"]
-            name = xa[u"name"]
+            at = xa[ARCHI_TYPE].rstrip()
+            id = xa[u"id"].rstrip()
+            name = xa[u"name"].rstrip()
             nat = name + u"|" + at
 
         except Exception, e:
@@ -143,7 +143,8 @@ def replaceDuplicateProperties(al):
             else:
                 dpa[key] = value
 
-        logger.info(u"Removing %d Duplicate Properties - %s[%s]" % (len(child_list), pa[u"name"], pa[u"id"]))
+        if len(child_list) != 0:
+            logger.info(u"Removing %d Duplicate Properties - %s[%s]" % (len(child_list), pa[u"name"], pa[u"id"]))
 
         for child in child_list:
             parent.remove(child)
@@ -156,7 +157,8 @@ def replaceDuplicateElements(al, td):
         element = al.findElementByID(elementID)[0]
         nameElement = element.get(u"name")
 
-        logger.info(u"Removing %d Duplicate Elements - %s[%s]" % (len(v[1:]),  element.get(u"name"), element.get(u"id")))
+        if len(v[1:]) != 0:
+            logger.info(u"Removing %d Duplicate Elements - %s[%s]" % (len(v[1:]),  element.get(u"name"), element.get(u"id")))
 
         # replace where used in a DiagramObject
         for ni in v[1:]:
@@ -169,7 +171,7 @@ def replaceDuplicateElements(al, td):
                 logger.warn(u"No Archimate Elements : %s - de" % ni)
                 continue
 
-            # remove all DiagramObjects pointing to dump element
+            # point all DiagramObjects to element
             for dea in de:
                 if dea.get(ARCHI_TYPE) == u"archimate:DiagramObject":
                     logger.debug(u"    replace '%s[%s]' **with** '%s[%s]'" %
@@ -180,7 +182,6 @@ def replaceDuplicateElements(al, td):
                     dea.set(u"archimateElement", elementID)
                 else:
                     logger.info(u"skipped : %s" % dea.get(ARCHI_TYPE))
-
 
 def replaceDuplicateRelations(al, oldID, newID):
 
@@ -210,43 +211,6 @@ def replaceDuplicateRelations(al, oldID, newID):
                         (dea.get(ARCHI_TYPE)[10:], name, id, nameElement, newID))
             dea.set(u"target", newID)
 
-def validateArchimateXML(al):
-    deleteNodes = list()
-
-    # Collect all elements
-    # ae = al.findElements()
-
-    folder = u"Relations"
-    eff = al.getElementsFromFolder(folder)[0]
-    ae = eff.getchildren()
-
-    n = len(ae)
-    # Find relations with source or target invalid
-    for node in ae:
-        if (n % 100) == 0:
-            logger.info(u"Count Down : %d" % n)
-
-        n -= 1
-        logger.debug(u"Element - %s[%s]" % (node.get(ARCHI_TYPE)[10:], node.get(u"id")))
-
-        if node.get(ARCHI_TYPE)[10:] in relations:
-            id = node.get(u"id")
-            source = node.get(u"source")
-            target = node.get(u"target")
-
-            logger.debug(u"    Source[%s] - Target[%s]" % (source, target))
-
-            se = al.findElementByID(source)
-            te = al.findElementByID(target)
-
-            if se[0] == u" " or te[0] == u" ":
-                logger.info(u"Invalid Relation : %s" % node.get(u"id"))
-                deleteNodes.append(node)
-
-    for node in deleteNodes:
-        logger.info(u"Remove : %s" % node.get(u"id"))
-        node.getparent().remove(node)
-
 @pytest.mark.Archi
 def test_DedupArchimateXML ():
 
@@ -268,18 +232,11 @@ def test_DedupArchimateXML ():
 
     replaceDuplicateRelations(al, tde)
 
-    validateArchimateXML(al)
-
     al.outputXMLtoFile(fileOutput)
 
 if __name__ == u"__main__":
 
-    # These were bad nodes in the file before anythng else
-    # Argh...
-    removeNodes = (u'd5805eef', u'58e158b8', u'e9f564f8', u'2f2190de', u'edf6ea10', u'5d99f417', u'f8d0a988',
-                   u'5f20e703', u'ed8313b6', u'3b11a056', u'ccfceb63', u'761b2d00')
-
-    fileArchimate = u"/Users/morrj140/Documents/SolutionEngineering/Archimate Models/DVC v51.archimate"
+    fileArchimate = u"/Users/morrj140/Documents/SolutionEngineering/Archimate Models/DVC v2.0.archimate"
 
     fileOutput = u"deduped.archimate"
 
@@ -296,8 +253,6 @@ if __name__ == u"__main__":
     replaceDuplicateElements(al, tde)
 
     replaceDuplicateProperties(al)
-
-    #validateArchimateXML(al)
 
     al.outputXMLtoFile(fileOutput)
 
