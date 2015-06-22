@@ -326,7 +326,8 @@ class ArchiLib(object):
                 #
                 for x in r:
 
-                    if x.get(ARCHI_TYPE) is not u"archimate:DiagramObject":
+                    xt = x.get(ARCHI_TYPE)
+                    if xt != u"archimate:DiagramObject":
                         continue
 
                     xid = x.get(u"id")

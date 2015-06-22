@@ -51,11 +51,11 @@ def text_ExportModel():
 
     start_time = ArchiLib.startTimer()
 
-    eam = ExportArchiModel(fileArchimateTest, fileConceptsExport)
+    eam = ExportArchiModel(fileArchimateTest, fileConceptsExport, fileCSVExport=fileCSVExport)
 
     listMTE = list()
 
-    listMTE.append(u"To-Be DAM Functional Reference Architecture")
+    listMTE.append(u"01. Market to Leads")
 
     eam.exportArchiModel(listMTE)
 
