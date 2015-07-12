@@ -19,6 +19,8 @@ logger.setLevel(INFO)
 
 from nl_lib.Concepts import Concepts
 
+import zipfile
+import tempfile
 from lxml import etree
 
 from openpyxl import Workbook
@@ -38,6 +40,7 @@ class ArchiLib(object):
     dictNodes = dict()
     dictBP    = dict()
     dictCount = dict()
+    tree = None
 
     def __init__(self, fileArchimate):
 
@@ -51,7 +54,23 @@ class ArchiLib(object):
 
             etree.QName(ARCHIMATE_NS, u'model')
 
-            self.tree = etree.parse(self.fileArchimate)
+            if zipfile.is_zipfile(self.fileArchimate):
+
+                logger.info(u"Zip File : %s" % self.fileArchimate)
+
+                model = u"model.xml"
+
+                zf = zipfile.ZipFile(self.fileArchimate, 'r')
+
+                ef = tempfile.gettempdir() + os.sep + model
+
+                zf.extract(model, tempfile.gettempdir())
+
+                self.tree = etree.parse(ef)
+
+            else:
+                logger.info(u"File : %s" % self.fileArchimate)
+                self.tree = etree.parse(self.fileArchimate)
 
             # Populate Dictionaries for easier code
             self.parseAll()
@@ -102,7 +121,7 @@ class ArchiLib(object):
             nl = strLine[:-1]
 
             logger.debug(u"%s" % nl)
-            f.write(nl + u"%s" % os.linesep)
+            f.write("%s%s" % (nl, os.linesep))
 
         f.close()
         logger.info(u"Save Model : %s" % self.fileExport)
@@ -307,7 +326,8 @@ class ArchiLib(object):
                 #
                 for x in r:
 
-                    if x.get(ARCHI_TYPE) is not u"archimate:DiagramObject":
+                    xt = x.get(ARCHI_TYPE)
+                    if xt != u"archimate:DiagramObject":
                         continue
 
                     xid = x.get(u"id")
@@ -627,7 +647,10 @@ class ArchiLib(object):
             if rownum == 0:
                 rownum += 1
                 for col in row:
-                    if col[:8] == u"Property":
+                    if col[:4] == u"Line":
+                        colType = col
+                        listColumnHeaders.append(colType)
+                    elif col[:8] == u"Property":
                         colType = col
                         listColumnHeaders.append(colType)
                     else:
@@ -654,6 +677,21 @@ class ArchiLib(object):
                         properties[u"ID"] = p
 
                     properties[listColumnHeaders[colnum][9:]] = CM
+
+                    colnum += 1
+                    continue
+
+                if listColumnHeaders[colnum][:4] == u"Line":
+                    logger.debug(u"Properties : %s - %s" % (listColumnHeaders[colnum][4:], CM))
+
+                    if u"ID" not in properties:
+                        properties[u"ID"] = p
+
+                    n = 0
+                    for line in CM.splitlines():
+                        n += 1
+                        name = u"%d.%s" % (n, listColumnHeaders[colnum][5:])
+                        properties[name] = line
 
                     colnum += 1
                     continue

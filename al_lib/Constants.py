@@ -17,7 +17,7 @@ resetNeo4J = u"/home/james.morris/bin/reset.sh"
 #
 # IP of Neo4J Graph
 #
-LocalGBD  = u"http://localhost:7574/db/data/"
+LocalGBD  = u"http://localhost:7474/db/data/"
 RemoteGDB = u"http://10.92.82.60:7574/db/data/"
 gdb = LocalGBD
 gdbTest = LocalGBD
@@ -41,6 +41,7 @@ directory = dirTest
 fileArchimateTest   = dirTest + u"Testing.archimate"
 fileArchimateModel  = directory + u'archi.archimate'
 fileArchimateImport = directory + u"import_artifacts.archimate"
+fileArchimateZipFileTest   = dirTest + u"Testing2.archimate"
 
 #
 # Concept Files Used
