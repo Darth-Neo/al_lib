@@ -64,7 +64,9 @@ class ArchiLib(object):
 
                 ef = tempfile.gettempdir() + os.sep + model
 
-                zf.extract(model, tempfile.gettempdir())
+                tempDir = tempfile.gettempdir()
+                logger.info(u"Using tempDir : %s" % tempDir)
+                zf.extract(model, tempDir)
 
                 self.tree = etree.parse(ef)
 
@@ -147,7 +149,6 @@ class ArchiLib(object):
                 ws.cell(u'%s%s'%(col, row)).value = u'%s%s' % (col, row)
 
         wb.save(filename = fileOut)
-
 
     #
     # Model transversal functions via XPath
@@ -300,48 +301,113 @@ class ArchiLib(object):
             # recurseElement(t, e, tree)
 
     def recurseModel(self, ModelToExport, concepts):
+        stack = list()
+
         #
         # Find DiagramModel Element to Export
         #
         xp = u"//element[@name='%s']" % (ModelToExport)
-        logger.debug(u"XP : %s" % xp)
+        logger.info(u"XP : %s" % xp)
 
         se = self.tree.xpath(xp)
 
         nse = len(se)
-        logger.debug(u"num se : %d" % nse)
+        logger.info(u"Found : %d" % nse)
+
         #
         # Iterate over the DiagramModel's DiagramObjects children
         #
         for m in se:
             if m.get(ARCHI_TYPE) == DIAGRAM_MODEL:
-                logger.debug(u"%s:%s:%s" % (m.get(u"name"), m.get(ARCHI_TYPE), m.tag))
-
-                r = m.getchildren()
-
-                c = concepts.addConceptKeyType(m.get(u"name"), m.get(ARCHI_TYPE)[10:])
+                logger.info(u"%s:%s:%s" % (m.get(u"name"), m.get(ARCHI_TYPE), m.tag))
 
                 #
                 # for each DiagramObject, Find the ArchimateElement
                 #
-                for x in r:
-
+                # <element xsi:type="archimate:ArchimateDiagramModel" id="e89e71e9" name="01. Market to Leads">
+                for x in m.getchildren():
+                    tag = x.tag
                     xt = x.get(ARCHI_TYPE)
-                    if xt != u"archimate:DiagramObject":
-                        continue
 
-                    xid = x.get(u"id")
+                    # <child xsi:type="archimate:DiagramObject" id="6be6785b" textAlignment="2"
+                    #  targetConnections="b29e100b a4f937a0" archimateElement="072e91aa">
+                    if xt == u"archimate:DiagramObject":
+                        xid = x.get(u"id")
+                        xc, xname = self.getElementName(x.get(u"archimateElement"))
+                        logger.info(u"  %s - %s[%s]" % (x.tag, xname, x.get(ARCHI_TYPE)))
 
-                    xc, xname = self.getElementName(x.get(u"archimateElement"))
+                        dl = list()
+                        dl.append(xt)
+                        dl.append(m.get(u"name"))
+                        dl.append(xname)
+                        dl.append(xc.get(ARCHI_TYPE)[10:])
+                        stack.append(dl)
 
-                    logger.info(u"  %s[%s]" % (xname, x.get(ARCHI_TYPE)))
+                        yc = x.getchildren()
+                        for y in yc:
+                            yt = y.get(ARCHI_TYPE)
 
-                    d = c.addConceptKeyType(xname, xc.get(ARCHI_TYPE)[10:])
+                            # <sourceConnection xsi:type="archimate:Connection" id="a11961cc" source="6be6785b"
+                            #  target="75343393" relationship="a9ddda4c"/>
+                            if yt == u"archimate:Connection":
+                                logger.info(u"    sourceConnection")
+                                cn = list()
+                                cn.append(yt)
+                                cn.append(y.get(u"relationship"))
+                                cn.append(y.get(u"source"))
+                                cn.append(y.get(u"target"))
+                                stack.append(cn)
 
-                    self.recurseChildren(d, x)
+                            # <bounds x="72" y="108" width="120" height="55"/>
+                            elif y.tag == u"bounds":
+                                logger.debug(u"bounds")
+
+                            else:
+                                logger.debug(u"Skipping - %s" % xt)
+                                continue
+
+        logger.info(u"Stack = %d" % len(stack))
+
+        for ct, r, s, t in stack:
+            rn = None
+            sn = None
+            tn = None
+
+            try:
+                if ct == u"archimate:DiagramObject":
+                    rn = r
+                    sn = s
+                    tn = t
+
+                    logger.info(u"%s[%s]" % (sn, tn))
+                    d = concepts.addConceptKeyType(sn, t)
+
+                elif ct ==  u"archimate:Connection":
+                    rn = self.findElementByID(r)[0].get(ARCHI_TYPE)[10:]
+
+                    s = self.findDiagramObject(s)[0]
+                    si = s.get(u"archimateElement")
+                    ss = self.findElementByID(si)[0]
+                    sn = ss.get(u"name")
+                    st = ss.get(ARCHI_TYPE)[10:]
+
+                    t = self.findDiagramObject(t)[0]
+                    ti = t.get(u"archimateElement")
+                    tt = self.findElementByID(ti)[0]
+                    tn = tt.get(u"name")
+                    tt = tt.get(ARCHI_TYPE)[10:]
+
+                    logger.info(u"%s -> [%s] -> %s" % (sn, rn, tn))
+
+                    d = concepts.addConceptKeyType(rn, u"Relation")
+                    e = d.addConceptKeyType(sn, st)
+                    f = e.addConceptKeyType(sn, tt)
+
+            except Exception, msg:
+                logger.error(u"%s" % msg)
+                continue
 
         return concepts
-
 
     def countNodeType(self, type):
         if self.dictCount.has_key(type):
@@ -665,20 +731,32 @@ class ArchiLib(object):
             p = None
             colnum = 0
 
+            lc = len(row)
             for col in row:
                 logger.info(u"    %d   [%s] %s" % (colnum, listColumnHeaders[colnum], col))
 
                 CM = unicode(col).lstrip()
 
                 if listColumnHeaders[colnum][:8] == u"Property":
-                    logger.debug(u"Properties : %s - %s" % (listColumnHeaders[colnum][9:], CM))
+                    logger.info(u"Property : %s[%s]" % (CM, row[colnum+1]))
 
                     if u"ID" not in properties:
                         properties[u"ID"] = p
 
-                    properties[listColumnHeaders[colnum][9:]] = CM
+                    # If column header is Property.Key, consider next one as Property.Value
+                    if listColumnHeaders[colnum] == u"Property.Key":
+                        try:
+                            if not(colnum + 1 > lc):
+                                properties[CM] = row[colnum+1]
+                                del row[colnum+1]
+                                colnum += 2
 
-                    colnum += 1
+                        except Exception, msg:
+                            logger.warn(u"%s" % msg)
+                    else:
+                         properties[listColumnHeaders[colnum][9:]] = CM
+                         colnum += 1
+
                     continue
 
                 if listColumnHeaders[colnum][:4] == u"Line":

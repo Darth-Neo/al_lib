@@ -43,7 +43,7 @@ class ExportArchiModel(object):
 
         Concepts.saveConcepts(concepts, self.fileConceptsExport)
 
-        if self.fileCSVExport <> None:
+        if self.fileCSVExport is not None:
             self.al.outputCSVtoFile(concepts, self.fileCSVExport)
 
 
