@@ -92,7 +92,6 @@ relations = {u"TriggeringRelationship" : u"archimate:TriggeringRelationship",
                     u"UsedByRelationship" : u"archimate:UsedByRelationship",
                     u"AccessRelationship" : u"archimate:AccessRelationship",
                     u"FlowRelationship" : u"archimate:FlowRelationship",
-                    u"AssignmentRelationship" : u"archimate:AssignmentRelationship",
                     u"AssociationRelationship" : u"archimate:AssociationRelationship",
                     u"RealisationRelationship" : u"archimate:RealisationRelationship",
                     u"CompositionRelationship" : u"archimate:CompositionRelationship",
@@ -114,6 +113,18 @@ entities = {u"BusinessEvent" : u"archimate:BusinessEvent",
             u"Stakeholder" : u"archimate:Stakeholder",
             u"WorkPackage"  : u"archimate:WorkPackage"}
 
+entityFolders = {u"BusinessEvent" : u"Business",
+            u"BusinessObject" : u"Business",
+            u"BusinessProcess" : u"Business",
+            u"ApplicationService" : u"Application",
+            u"ApplicationComponent" : u"Application",
+            u"ApplicationFunction" : u"Application",
+            u"DataObject" : u"Application",
+            u"Requirement" : u"Motivation",
+            u"Stakeholder" : u"Motivation",
+            u"WorkPackage" : u"Motivation"}
+
+
 folders = {u"Business", u"Application", u"Technology", u"Motivation", u"Implementation & Migration", u"Connectors", u"Relations" }
 
 DIAGRAM_MODEL = u"archimate:ArchimateDiagramModel"
@@ -127,3 +138,5 @@ elif _platform == "darwin":
     resetNeo4J = u"/Users/morrj140/Development/neo4j/bin/reset.sh"
 elif _platform == "win32":
     resetNeo4J = "n/a"
+
+ID = u"id"
