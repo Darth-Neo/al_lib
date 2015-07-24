@@ -87,7 +87,7 @@ class ArchiLib(object):
 
         logger.debug(u"%s" % (output.getvalue()))
 
-        logger.info(u"====> Saved to : %s" % filename)
+        logger.info(u"====> Saved to : %s <====" % filename)
 
         with open(filename, u'w') as f:
             f.write(output.getvalue())
@@ -614,6 +614,11 @@ class ArchiLib(object):
     def insertNode(self, tag, folder, attrib, new=False):
         idd = None
 
+        if new == True:
+            d = self.dictND
+        else:
+            d = self.dictNodes
+
         try:
             logger.debug(u"attrib: %s" % (attrib))
 
@@ -624,14 +629,14 @@ class ArchiLib(object):
             else:
                 logger.debug(u"N            same value .%s:%s." % (value, attrib[NAME]))
 
-            if new and value in self.dictND:
-                idd = self.dictND[value]
+            if value in d:
+                idd = d[value]
                 attrib[ID] = idd
 
                 logger.info(u"N            inFound! : %s" % idd)
             else:
                 idd = self._getID()
-                self.dictND[value] = idd
+                d[value] = idd
                 attrib[ID] = idd
 
                 elm = etree.Element(tag, attrib, nsmap=NS_MAP)
@@ -655,14 +660,19 @@ class ArchiLib(object):
 
         value = u"%s--%s" % (attrib[u"source"], attrib[u"target"])
 
-        if new and value in self.dictRel.values():
-            idd = self.dictRel[value]
+        if new == True:
+            d = self.dictRel
+        else:
+            d = self.dictEdges
+
+        if value in d.values():
+            idd = d[value]
             attrib[ID] = idd
 
             logger.info(u"R            inFound! : %s" % idd)
         else:
             idd = self._getID()
-            self.dictRel[value] = idd
+            d[value] = idd
             attrib[ID] = idd
 
             xp = u"//folder[@name='" + folder + u"']"
