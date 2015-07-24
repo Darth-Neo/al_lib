@@ -41,7 +41,7 @@ class ArchiLib(object):
     dictBP    = dict()
     dictCount = dict()
     tree = None
-    listErrors = None
+    listErrors = list()
     dictRel = dict()
     dictND = dict()
 
@@ -611,7 +611,7 @@ class ArchiLib(object):
     #
     # Node - <element xsi:type="archimate:Node" id="612a9b73" name="Linux Server"/>
     #
-    def insertNode(self, tag, folder, attrib):
+    def insertNode(self, tag, folder, attrib, new=False):
         idd = None
 
         try:
@@ -624,14 +624,14 @@ class ArchiLib(object):
             else:
                 logger.debug(u"N            same value .%s:%s." % (value, attrib[NAME]))
 
-            if value in self.dictName:
-                idd = self.dictName[value]
+            if new and value in self.dictND:
+                idd = self.dictND[value]
                 attrib[ID] = idd
 
                 logger.info(u"N            inFound! : %s" % idd)
             else:
                 idd = self._getID()
-                self.dictName[value] = idd
+                self.dictND[value] = idd
                 attrib[ID] = idd
 
                 elm = etree.Element(tag, attrib, nsmap=NS_MAP)
@@ -639,7 +639,7 @@ class ArchiLib(object):
                 xp = u"//folder[@name='" + folder + u"']"
                 txp = self.tree.xpath(xp)
                 txp[0].insert(0, elm)
-                logger.info(u"N             inNew!   : %s" % idd)
+                logger.info(u"N            inNew!   : %s" % idd)
 
             self.dictND[attrib[NAME]] = attrib[ID]
 
@@ -649,13 +649,13 @@ class ArchiLib(object):
 
         return idd
 
-    def insertRel(self, tag, folder, attrib):
+    def insertRel(self, tag, folder, attrib, new=False):
 
         logger.debug(u"attrib: %s" % (attrib))
 
         value = u"%s--%s" % (attrib[u"source"], attrib[u"target"])
 
-        if value in self.dictRel.values():
+        if new and value in self.dictRel.values():
             idd = self.dictRel[value]
             attrib[ID] = idd
 
@@ -826,7 +826,7 @@ class ArchiLib(object):
                 attrib = dict()
                 attrib[NAME] = CM
                 attrib[ARCHI_TYPE] = listColumnHeaders[colnum]
-                self.insertNode(tag, folder, attrib)
+                self.insertNode(tag, folder, attrib, new=True)
                 CM_ID = attrib[ID]
 
                 if p is not None:
@@ -835,7 +835,7 @@ class ArchiLib(object):
                     attrib[u"target"] = p
                     attrib[ARCHI_TYPE] = u"archimate:AssociationRelationship"
                     logger.info(u"             Edge Inserted %s-[%s]->%s" % (CM_ID, attrib[ARCHI_TYPE], p))
-                    self.insertRel(tag, u"Relations", attrib)
+                    self.insertRel(tag, u"Relations", attrib, new=True)
                     p = CM_ID
                 else:
                     p = CM_ID
