@@ -140,3 +140,4 @@ elif _platform == "win32":
     resetNeo4J = "n/a"
 
 ID = u"id"
+NAME = u"name"
