@@ -42,6 +42,8 @@ class ArchiLib(object):
     dictCount = dict()
     tree = None
     listErrors = None
+    dictRel = dict()
+    dictND = dict()
 
     def __init__(self, fileArchimate):
         self.listErrors = list()
@@ -618,13 +620,15 @@ class ArchiLib(object):
             value = attrib[NAME].rstrip(u" ").lstrip(u" ")
 
             if value != attrib[NAME]:
-                logger.debug(u"diff value .%s:%s." % (value, attrib[NAME]))
+                logger.debug(u"N            diff value .%s:%s." % (value, attrib[NAME]))
+            else:
+                logger.debug(u"N            same value .%s:%s." % (value, attrib[NAME]))
 
-            if self.dictName.has_key(value):
+            if value in self.dictName:
                 idd = self.dictName[value]
                 attrib[ID] = idd
 
-                logger.debug(u"inFound! : %s" % idd)
+                logger.info(u"N            inFound! : %s" % idd)
             else:
                 idd = self._getID()
                 self.dictName[value] = idd
@@ -635,7 +639,9 @@ class ArchiLib(object):
                 xp = u"//folder[@name='" + folder + u"']"
                 txp = self.tree.xpath(xp)
                 txp[0].insert(0, elm)
-                logger.debug(u"uinNew!   : %s" % idd)
+                logger.info(u"N             inNew!   : %s" % idd)
+
+            self.dictND[attrib[NAME]] = attrib[ID]
 
         except Exception, msg:
             logger.warn(u"attrib: %s" % (attrib))
@@ -649,20 +655,20 @@ class ArchiLib(object):
 
         value = u"%s--%s" % (attrib[u"source"], attrib[u"target"])
 
-        if self.dictName.has_key(value):
-            idd = self.dictName[value]
+        if value in self.dictRel.values():
+            idd = self.dictRel[value]
             attrib[ID] = idd
 
-            logger.debug(u"inFound! : %s" % idd)
+            logger.info(u"R            inFound! : %s" % idd)
         else:
             idd = self._getID()
-            self.dictName[value] = idd
+            self.dictRel[value] = idd
             attrib[ID] = idd
 
             xp = u"//folder[@name='" + folder + u"']"
             elm = etree.Element(tag, attrib, nsmap=NS_MAP)
             self.tree.xpath(xp)[0].insert(0, elm)
-            logger.debug(u"inNew!   : %s" % idd)
+            logger.info(u"R            inNew!   : %s" % idd)
 
         return idd
 
@@ -682,10 +688,10 @@ class ArchiLib(object):
         prevProp = dict()
 
         for x in nd:
-            logger.info(u"X %s" % x.attrib)
+            logger.info(u"             X %s" % x.attrib)
             na = x.attrib
             prevProp.update(dict(na))
-            logger.info(u"P %s" % (prevProp))
+            logger.info(u"             P %s" % (prevProp))
 
         n = 0
         for key, value in properties.items():
@@ -763,7 +769,7 @@ class ArchiLib(object):
                     if not (p in properties):
                         properties[ID] = p
 
-                    logger.info(u"            Property[%s] : %s[%s]" % (p, listColumnHeaders[colnum][9:], CM))
+                    logger.info(u"           Property[%s] : %s[%s]" % (p, listColumnHeaders[colnum][9:], CM))
 
                     # If column header is Property.Key, consider next one as Property.Value
                     if listColumnHeaders[colnum] == u"Property.Key":
@@ -823,15 +829,13 @@ class ArchiLib(object):
                 self.insertNode(tag, folder, attrib)
                 CM_ID = attrib[ID]
 
-                logger.info(u"            Node Inserted %s" % CM_ID)
-
                 if p is not None:
                     attrib = dict()
                     attrib[u"source"] = CM_ID
                     attrib[u"target"] = p
                     attrib[ARCHI_TYPE] = u"archimate:AssociationRelationship"
+                    logger.info(u"             Edge Inserted %s-[%s]->%s" % (CM_ID, attrib[ARCHI_TYPE], p))
                     self.insertRel(tag, u"Relations", attrib)
-                    logger.info(u"            Edge Inserted %s-[%s]->%s" % (CM_ID, attrib[ARCHI_TYPE], p))
                     p = CM_ID
                 else:
                     p = CM_ID
