@@ -608,6 +608,7 @@ class ArchiLib(object):
 
         return listCounts
 
+
     #
     # Node - <element xsi:type="archimate:Node" id="612a9b73" name="Linux Server"/>
     #
@@ -632,7 +633,6 @@ class ArchiLib(object):
             if value in d:
                 idd = d[value]
                 attrib[ID] = idd
-
                 logger.info(u"N            inFound! : %s" % idd)
             else:
                 idd = self._getID()
@@ -665,7 +665,7 @@ class ArchiLib(object):
         else:
             d = self.dictEdges
 
-        if value in d.values():
+        if value in d:
             idd = d[value]
             attrib[ID] = idd
 
