@@ -333,13 +333,13 @@ class ArchiLib(object):
 
             # <child xsi:type="archimate:DiagramObject" id="6be6785b" textAlignment="2"
             #  targetConnections="b29e100b a4f937a0" archimateElement="072e91aa">
-            if xt == u"archimate:DiagramObject":
+            if xt == DIAGRAM_OBJECT:
                 xc, xname = self.getElementName(x.get(u"archimateElement"))
                 logger.info(u"DO  %s - %s[%s]" % (x.tag, xname, x.get(ARCHI_TYPE)))
 
                 dl = list()
                 dl.append(xt)
-                dl.append(m.get(NAME))
+                dl.append(x.get(NAME))
                 dl.append(xname)
                 dl.append(xc.get(ARCHI_TYPE)[10:])
                 stack.append(dl)
