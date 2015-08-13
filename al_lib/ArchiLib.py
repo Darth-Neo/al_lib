@@ -122,6 +122,8 @@ class ArchiLib(object):
                 else:
                     colDict[n] = y
 
+                strLine = strLine.encode(u"utf8", errors=u"ignore")
+                strLine = strLine.decode(u"ascii", errors=u"ignore")
                 strLine = u"%s%s," % (strLine, y)
 
             nl = strLine[:-1]
@@ -274,13 +276,13 @@ class ArchiLib(object):
         #
         for y in nc:
             if y.tag == u"child":
-                logger.debug(u"%d.%s" % (n, y.tag))
+                logger.info(u"%d.%s" % (n, y.tag))
                 yc, yname = self.getElementName(y.get(u"archimateElement"))
                 d = concepts.addConceptKeyType(yname, yc.get(ARCHI_TYPE)[10:])
                 self.recurseChildren(d, y)
 
             if y.tag == u"sourceConnection":
-                logger.debug(u"skip - %s" % y.tag)
+                logger.info(u"skip - %s" % y.tag)
 
                 yid = y.get(ID)
                 yi = y.items()
@@ -305,6 +307,67 @@ class ArchiLib(object):
 
             # recurseElement(t, e, tree)
 
+    def recurseDiagramObjects(self, stack, m, n=0):
+
+        n += 1
+
+        if n == 5:
+            return
+        #
+        # for each DiagramObject, Find the ArchimateElement
+        #
+        # <element xsi:type="archimate:ArchimateDiagramModel" id="e89e71e9" name="01. Market to Leads">
+        for x in m.getchildren():
+            logger.info(u"IC  %d.%s[%s]" % (n, x.get(u"name"), x.get(ARCHI_TYPE)))
+
+            tag = x.tag
+            xt = x.get(ARCHI_TYPE)
+            xid = x.get(ID)
+
+            xl = len(x.getchildren())
+            logger.info(u"LC  %d.%s[%s]" % (n, xl, xt))
+
+            if xl > 0:
+                logger.info(u"NC%d  %s - %s.%s[%s]" % (n, x.tag, x.get(u"name"), x.get(ID), xt))
+                stack = self.recurseDiagramObjects(stack, x, n)
+
+            # <child xsi:type="archimate:DiagramObject" id="6be6785b" textAlignment="2"
+            #  targetConnections="b29e100b a4f937a0" archimateElement="072e91aa">
+            if xt == u"archimate:DiagramObject":
+                xc, xname = self.getElementName(x.get(u"archimateElement"))
+                logger.info(u"DO  %s - %s[%s]" % (x.tag, xname, x.get(ARCHI_TYPE)))
+
+                dl = list()
+                dl.append(xt)
+                dl.append(m.get(NAME))
+                dl.append(xname)
+                dl.append(xc.get(ARCHI_TYPE)[10:])
+                stack.append(dl)
+
+                yc = x.getchildren()
+                for y in yc:
+                    yt = y.get(ARCHI_TYPE)
+
+                    # <sourceConnection xsi:type="archimate:Connection" id="a11961cc" source="6be6785b"
+                    #  target="75343393" relationship="a9ddda4c"/>
+                    if yt == u"archimate:Connection":
+                        logger.info(u"    sourceConnection")
+                        cn = list()
+                        cn.append(yt)
+                        cn.append(y.get(u"relationship"))
+                        cn.append(y.get(u"source"))
+                        cn.append(y.get(u"target"))
+                        stack.append(cn)
+
+                    # <bounds x="72" y="108" width="120" height="55"/>
+                    elif y.tag == u"bounds":
+                        logger.debug(u"bounds")
+
+                    else:
+                        logger.debug(u"Skipping - %s" % xt)
+                        continue
+        return stack
+
     def recurseModel(self, ModelToExport, concepts):
         stack = list()
 
@@ -325,51 +388,7 @@ class ArchiLib(object):
         for m in se:
             if m.get(ARCHI_TYPE) == DIAGRAM_MODEL:
                 logger.info(u"%s:%s:%s" % (m.get(u"name"), m.get(ARCHI_TYPE), m.tag))
-
-                #
-                # for each DiagramObject, Find the ArchimateElement
-                #
-                # <element xsi:type="archimate:ArchimateDiagramModel" id="e89e71e9" name="01. Market to Leads">
-                for x in m.getchildren():
-                    tag = x.tag
-                    xt = x.get(ARCHI_TYPE)
-
-                    # <child xsi:type="archimate:DiagramObject" id="6be6785b" textAlignment="2"
-                    #  targetConnections="b29e100b a4f937a0" archimateElement="072e91aa">
-                    if xt == u"archimate:DiagramObject":
-                        xid = x.get(ID)
-                        xc, xname = self.getElementName(x.get(u"archimateElement"))
-                        logger.info(u"  %s - %s[%s]" % (x.tag, xname, x.get(ARCHI_TYPE)))
-
-                        dl = list()
-                        dl.append(xt)
-                        dl.append(m.get(NAME))
-                        dl.append(xname)
-                        dl.append(xc.get(ARCHI_TYPE)[10:])
-                        stack.append(dl)
-
-                        yc = x.getchildren()
-                        for y in yc:
-                            yt = y.get(ARCHI_TYPE)
-
-                            # <sourceConnection xsi:type="archimate:Connection" id="a11961cc" source="6be6785b"
-                            #  target="75343393" relationship="a9ddda4c"/>
-                            if yt == u"archimate:Connection":
-                                logger.info(u"    sourceConnection")
-                                cn = list()
-                                cn.append(yt)
-                                cn.append(y.get(u"relationship"))
-                                cn.append(y.get(u"source"))
-                                cn.append(y.get(u"target"))
-                                stack.append(cn)
-
-                            # <bounds x="72" y="108" width="120" height="55"/>
-                            elif y.tag == u"bounds":
-                                logger.debug(u"bounds")
-
-                            else:
-                                logger.debug(u"Skipping - %s" % xt)
-                                continue
+                stack = self.recurseDiagramObjects(stack, m)
 
         logger.info(u"Stack = %d" % len(stack))
 

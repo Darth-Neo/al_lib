@@ -92,19 +92,21 @@ relations = {u"TriggeringRelationship" : u"archimate:TriggeringRelationship",
                     u"UsedByRelationship" : u"archimate:UsedByRelationship",
                     u"AccessRelationship" : u"archimate:AccessRelationship",
                     u"FlowRelationship" : u"archimate:FlowRelationship",
+                    u"AssignmentRelationship" : u"archimate:AssignmentRelationship",
                     u"AssociationRelationship" : u"archimate:AssociationRelationship",
                     u"RealisationRelationship" : u"archimate:RealisationRelationship",
                     u"CompositionRelationship" : u"archimate:CompositionRelationship",
-                    u"AssignmentRelationship" : u"archimate:AssignmentRelationship",
                     u"AggregationRelationship": u"archimate:AggregationRelationship",
                     u"SpecialisationRelationship" : u"archimate:SpecialisationRelationship"}
 
 #
 # Archimate Nodes
 #
-entities = {u"BusinessEvent" : u"archimate:BusinessEvent",
+entities = {u"BusinessActor" : u"archimate:BusinessActor",
+            u"BusinessEvent" : u"archimate:BusinessEvent",
             u"BusinessObject" : u"archimate:BusinessObject",
             u"BusinessProcess" : u"archimate:BusinessProcess",
+            u"BusinessFunction" : u"archimate:BusinessFunction",
             u"ApplicationService" : u"archimate:ApplicationService",
             u"ApplicationComponent" : u"archimate:ApplicationComponent",
             u"ApplicationFunction" : u"archimate:ApplicationFunction",

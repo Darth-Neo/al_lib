@@ -47,7 +47,7 @@ class ExportArchiModel(object):
             self.al.outputCSVtoFile(concepts, self.fileCSVExport)
 
 
-def text_ExportModel():
+def test_ExportModel():
 
     start_time = ArchiLib.startTimer()
 
@@ -62,4 +62,4 @@ def text_ExportModel():
     ArchiLib.stopTimer(start_time)
 
 if __name__ == u"__main__":
-    text_ExportModel()
+    test_ExportModel()
