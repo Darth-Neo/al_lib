@@ -316,20 +316,20 @@ class ArchiLib(object):
 
         spaces = " " * n
 
-        if n == 5:
-            return
-
         mc, mname = self.getElementName(m.get(u"archimateElement"))
+
+        logger.info(u"mc %s" % mname)
+        children = m.getchildren()
+
 
         #
         # for each DiagramObject, Find the ArchimateElement
         #
         # <element xsi:type="archimate:ArchimateDiagramModel" id="e89e71e9" name="01. Market to Leads">
-        for x in m.getchildren():
+        for x in children:
 
             tag = x.tag
             xt = x.get(ARCHI_TYPE)
-            xid = x.get(ID)
 
             logger.debug(u"%sIC%d.%s[%s]" % (spaces, n, tag, xt))
 
@@ -340,16 +340,12 @@ class ArchiLib(object):
                 xc, xname = self.getElementName(x.get(u"archimateElement"))
                 logger.info(u"%sDO%d - %s[%s]" % (spaces, n, xname, xt))
 
-                if mname is None:
-                    mname = PARENT
-
-                else:
-                    dl = list()
-                    dl.append(CHILD)
-                    dl.append(mname)
-                    dl.append(xname)
-                    dl.append(xc.get(ARCHI_TYPE)[10:])
-                    stack.append(dl)
+                dl = list()
+                dl.append(m.tag)
+                dl.append(mname)
+                dl.append(xname)
+                dl.append(xc.get(ARCHI_TYPE)[10:])
+                stack.append(dl)
 
                 yc = x.getchildren()
                 for y in yc:
@@ -404,7 +400,7 @@ class ArchiLib(object):
         fileExport = u"model_export.csv"
 
         with open(fileExport, u"wb") as f:
-            f.write("Entity, Source, Target, %s" % os.linesep)
+            f.write("EntityRelation, Source, Target%s" % os.linesep)
             #
             # Iterate over the DiagramModel's DiagramObjects children
             #
@@ -417,56 +413,44 @@ class ArchiLib(object):
 
             self.count = 0
             for ct, r, s, t in stack:
+                logger.info(u"\"%s\",\"%s\",\"%s\",\"%s\"" % (ct, r, s, t))
 
                 rn = None
                 sn = None
                 tn = None
 
-                if True:
-                    if ct == CHILD:
-                        if r == PARENT:
-                            logger.info(u"\"%s\",\"%s\"" % (s, t))
-                            f.write("\"%s\",\"%s\"%s" % (s, t, os.linesep))
-                        else:
-                            logger.info(u"\"%s\",\"%s\",\"%s\"" % (r, s, t))
-                            f.write("\"%s\",\"%s\",\"%s\"%s" % (r, s, t, os.linesep))
-                        self.count += 1
+                if ct == CHILD:
+                    logger.info(u"\"%s\",\"%s\",\"%s\"" % (t, r, s))
+                    f.write("\"%s\",\"%s\",\"%s\"%s" % (t, r, s, os.linesep))
+                    self.count += 1
 
-                    elif ct ==  u"archimate:Connection":
-                        self.count += 1
-                        rn = self.findElementByID(r)[0].get(ARCHI_TYPE)[10:]
+                elif ct ==  u"archimate:Connection":
+                    self.count += 1
+                    rn = self.findElementByID(r)[0].get(ARCHI_TYPE)[10:]
 
-                        s = self.findDiagramObject(s)[0]
-                        si = s.get(u"archimateElement")
-                        ss = self.findElementByID(si)[0]
-                        sn = ss.get(NAME)
-                        st = ss.get(ARCHI_TYPE)[10:]
+                    s = self.findDiagramObject(s)[0]
+                    si = s.get(u"archimateElement")
+                    ss = self.findElementByID(si)[0]
+                    sn = ss.get(NAME)
+                    st = ss.get(ARCHI_TYPE)[10:]
 
-                        t = self.findDiagramObject(t)[0]
-                        ti = t.get(u"archimateElement")
-                        tt = self.findElementByID(ti)[0]
-                        tn = tt.get(NAME)
-                        tt = tt.get(ARCHI_TYPE)[10:]
+                    t = self.findDiagramObject(t)[0]
+                    ti = t.get(u"archimateElement")
+                    tt = self.findElementByID(ti)[0]
+                    tn = tt.get(NAME)
+                    tt = tt.get(ARCHI_TYPE)[10:]
 
-                        logger.info("\"%s\",\"%s\",\"%s\"" % (rn, sn, tn))
-                        f.write("\"%s\",\"%s\",\"%s\"%s" % (rn, sn, tn, os.linesep))
+                    logger.info("\"%s\",\"%s\",\"%s\"" % (rn, sn, tn))
+                    f.write("\"%s\",\"%s\",\"%s\"%s" % (rn, sn, tn, os.linesep))
 
+                else:
+                    logger.info(u"\"%s\",\"%s\"" % (t, s))
+                    f.write("\"%s\",\"%s\"%s" % (t, s, os.linesep))
 
-                    else:
-                        logger.info(u"\"%s\",\"%s\",\"%s\"" % (r, s, t))
-                        f.write("\"%s\",\"%s\",\"%s\"%s" % (r, s, t, os.linesep))
-
-                        self.count += 1
-                        rn = r
-                        sn = s
-                        tn = t
-
-                else: # except Exception, msg:
-                    msg = u"opps"
-                    self.errors += 1
-                    logger.error(u"%s" % msg)
-                    self.listErrors.append(msg)
-                    continue
+                    self.count += 1
+                    rn = r
+                    sn = s
+                    tn = t
 
             f.close()
 
