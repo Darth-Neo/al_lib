@@ -47,6 +47,8 @@ class ArchiLib(object):
 
     def __init__(self, fileArchimate):
         self.listErrors = list()
+        self.count = 0
+        self.errors = 0
 
         if os.path.isfile(fileArchimate) is False:
              raise IOError(u"File not found")
@@ -233,6 +235,7 @@ class ArchiLib(object):
         try:
             attributes = e.attrib
         except Exception, msg:
+            self.errors += 1
             logger.warn(u"Ops...")
             self.listErrors.append(msg)
             return concepts
@@ -311,38 +314,42 @@ class ArchiLib(object):
 
         n += 1
 
+        spaces = " " * n
+
         if n == 5:
             return
+
+        mc, mname = self.getElementName(m.get(u"archimateElement"))
+
         #
         # for each DiagramObject, Find the ArchimateElement
         #
         # <element xsi:type="archimate:ArchimateDiagramModel" id="e89e71e9" name="01. Market to Leads">
         for x in m.getchildren():
-            logger.info(u"IC  %d.%s[%s]" % (n, x.get(u"name"), x.get(ARCHI_TYPE)))
 
             tag = x.tag
             xt = x.get(ARCHI_TYPE)
             xid = x.get(ID)
 
-            xl = len(x.getchildren())
-            logger.info(u"LC  %d.%s[%s]" % (n, xl, xt))
-
-            if xl > 0:
-                logger.info(u"NC%d  %s - %s.%s[%s]" % (n, x.tag, x.get(u"name"), x.get(ID), xt))
-                stack = self.recurseDiagramObjects(stack, x, n)
+            logger.debug(u"%sIC%d.%s[%s]" % (spaces, n, tag, xt))
 
             # <child xsi:type="archimate:DiagramObject" id="6be6785b" textAlignment="2"
             #  targetConnections="b29e100b a4f937a0" archimateElement="072e91aa">
             if xt == DIAGRAM_OBJECT:
+                self.count += 1
                 xc, xname = self.getElementName(x.get(u"archimateElement"))
-                logger.info(u"DO  %s - %s[%s]" % (x.tag, xname, x.get(ARCHI_TYPE)))
+                logger.info(u"%sDO%d - %s[%s]" % (spaces, n, xname, xt))
 
-                dl = list()
-                dl.append(xt)
-                dl.append(x.get(NAME))
-                dl.append(xname)
-                dl.append(xc.get(ARCHI_TYPE)[10:])
-                stack.append(dl)
+                if mname is None:
+                    mname = PARENT
+
+                else:
+                    dl = list()
+                    dl.append(CHILD)
+                    dl.append(mname)
+                    dl.append(xname)
+                    dl.append(xc.get(ARCHI_TYPE)[10:])
+                    stack.append(dl)
 
                 yc = x.getchildren()
                 for y in yc:
@@ -351,7 +358,8 @@ class ArchiLib(object):
                     # <sourceConnection xsi:type="archimate:Connection" id="a11961cc" source="6be6785b"
                     #  target="75343393" relationship="a9ddda4c"/>
                     if yt == u"archimate:Connection":
-                        logger.info(u"    sourceConnection")
+                        self.count += 1
+                        logger.debug(u"    sourceConnection")
                         cn = list()
                         cn.append(yt)
                         cn.append(y.get(u"relationship"))
@@ -363,12 +371,22 @@ class ArchiLib(object):
                     elif y.tag == u"bounds":
                         logger.debug(u"bounds")
 
+                    elif y.tag == u"child":
+                        yid = y.get(ID)
+                        yname = y.get(u"name")
+
+                        yc, yname = self.getElementName(y.get(u"archimateElement"))
+
+                        logger.debug(u"%sRC%d - %s.%s[%s]" % (spaces, n, tag, yid, yname))
+                        stack = self.recurseDiagramObjects(stack, y, n)
+
                     else:
-                        logger.debug(u"Skipping - %s" % xt)
+                        logger.info(u"Skipping - %s" % xt)
                         continue
+
         return stack
 
-    def recurseModel(self, ModelToExport, concepts):
+    def recurseModel(self, ModelToExport):
         stack = list()
 
         #
@@ -381,58 +399,79 @@ class ArchiLib(object):
 
         nse = len(se)
         logger.info(u"Found : %d" % nse)
+        logger.info(u"cwd : %s" % os.getcwd())
 
-        #
-        # Iterate over the DiagramModel's DiagramObjects children
-        #
-        for m in se:
-            if m.get(ARCHI_TYPE) == DIAGRAM_MODEL:
-                logger.info(u"%s:%s:%s" % (m.get(u"name"), m.get(ARCHI_TYPE), m.tag))
-                stack = self.recurseDiagramObjects(stack, m)
+        fileExport = u"model_export.csv"
 
-        logger.info(u"Stack = %d" % len(stack))
+        with open(fileExport, u"wb") as f:
+            f.write("Entity, Source, Target, %s" % os.linesep)
+            #
+            # Iterate over the DiagramModel's DiagramObjects children
+            #
+            for m in se:
+                if m.get(ARCHI_TYPE) == DIAGRAM_MODEL:
+                    logger.info(u"%s:%s:%s" % (m.get(u"name"), m.get(ARCHI_TYPE), m.tag))
+                    stack = self.recurseDiagramObjects(stack, m)
 
-        for ct, r, s, t in stack:
-            rn = None
-            sn = None
-            tn = None
+            logger.info(u"Found = %d \tStack = %d\tErrors = %d" % (self.count, len(stack), self.errors))
 
-            try:
-                if ct == u"archimate:DiagramObject":
-                    rn = r
-                    sn = s
-                    tn = t
+            self.count = 0
+            for ct, r, s, t in stack:
 
-                    logger.info(u"%s[%s]" % (sn, tn))
-                    d = concepts.addConceptKeyType(sn, t)
+                rn = None
+                sn = None
+                tn = None
 
-                elif ct ==  u"archimate:Connection":
-                    rn = self.findElementByID(r)[0].get(ARCHI_TYPE)[10:]
+                if True:
+                    if ct == CHILD:
+                        if r == PARENT:
+                            logger.info(u"\"%s\",\"%s\"" % (s, t))
+                            f.write("\"%s\",\"%s\"%s" % (s, t, os.linesep))
+                        else:
+                            logger.info(u"\"%s\",\"%s\",\"%s\"" % (r, s, t))
+                            f.write("\"%s\",\"%s\",\"%s\"%s" % (r, s, t, os.linesep))
+                        self.count += 1
 
-                    s = self.findDiagramObject(s)[0]
-                    si = s.get(u"archimateElement")
-                    ss = self.findElementByID(si)[0]
-                    sn = ss.get(NAME)
-                    st = ss.get(ARCHI_TYPE)[10:]
+                    elif ct ==  u"archimate:Connection":
+                        self.count += 1
+                        rn = self.findElementByID(r)[0].get(ARCHI_TYPE)[10:]
 
-                    t = self.findDiagramObject(t)[0]
-                    ti = t.get(u"archimateElement")
-                    tt = self.findElementByID(ti)[0]
-                    tn = tt.get(NAME)
-                    tt = tt.get(ARCHI_TYPE)[10:]
+                        s = self.findDiagramObject(s)[0]
+                        si = s.get(u"archimateElement")
+                        ss = self.findElementByID(si)[0]
+                        sn = ss.get(NAME)
+                        st = ss.get(ARCHI_TYPE)[10:]
 
-                    logger.info(u"%s -> [%s] -> %s" % (sn, rn, tn))
+                        t = self.findDiagramObject(t)[0]
+                        ti = t.get(u"archimateElement")
+                        tt = self.findElementByID(ti)[0]
+                        tn = tt.get(NAME)
+                        tt = tt.get(ARCHI_TYPE)[10:]
 
-                    d = concepts.addConceptKeyType(rn, u"Relation")
-                    e = d.addConceptKeyType(sn, st)
-                    f = e.addConceptKeyType(sn, tt)
+                        logger.info("\"%s\",\"%s\",\"%s\"" % (rn, sn, tn))
+                        f.write("\"%s\",\"%s\",\"%s\"%s" % (rn, sn, tn, os.linesep))
 
-            except Exception, msg:
-                logger.error(u"%s" % msg)
-                self.listErrors.append(msg)
-                continue
 
-        return concepts
+                    else:
+                        logger.info(u"\"%s\",\"%s\",\"%s\"" % (r, s, t))
+                        f.write("\"%s\",\"%s\",\"%s\"%s" % (r, s, t, os.linesep))
+
+                        self.count += 1
+                        rn = r
+                        sn = s
+                        tn = t
+
+                else: # except Exception, msg:
+                    msg = u"opps"
+                    self.errors += 1
+                    logger.error(u"%s" % msg)
+                    self.listErrors.append(msg)
+                    continue
+
+            f.close()
+
+            logger.info(u"Export Complete : %s%s%s" % (os.getcwd(), os.sep, fileExport))
+            logger.info(u"Processed = %d \tErrors = %d" % (self.count, self.errors))
 
     def countNodeType(self, type):
         if self.dictCount.has_key(type):
@@ -498,6 +537,7 @@ class ArchiLib(object):
             logger.debug(u"  Node : %s" % (self.dictNodes[node][NAME]))
             name = self.dictNodes[node][NAME]
         except Exception, msg:
+            self.errors += 1
             logger.debug(u"Node not Found")
             self.listErrors.append(msg)
 
@@ -668,6 +708,7 @@ class ArchiLib(object):
             self.dictND[attrib[NAME]] = attrib[ID]
 
         except Exception, msg:
+            self.errors += 1
             logger.warn(u"attrib: %s" % (attrib))
             self.listErrors.append(msg)
 
@@ -809,6 +850,7 @@ class ArchiLib(object):
                                 colnum += 2
 
                         except Exception, msg:
+                            self.errors += 1
                             logger.warn(u"%s" % msg)
                             self.listErrors.append(msg)
                     else:

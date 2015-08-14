@@ -36,15 +36,9 @@ class ExportArchiModel(object):
     def exportArchiModel(self, listMTE):
 
         logger.info(u"Using : %s" % self.fileArchimate)
-        concepts = Concepts(u"Export", u"Model")
 
         for ModelToExport in listMTE:
-            self.al.recurseModel(ModelToExport, concepts)
-
-        Concepts.saveConcepts(concepts, self.fileConceptsExport)
-
-        if self.fileCSVExport is not None:
-            self.al.outputCSVtoFile(concepts, self.fileCSVExport)
+            self.al.recurseModel(ModelToExport)
 
 
 def test_ExportModel():

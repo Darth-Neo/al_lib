@@ -143,3 +143,5 @@ elif _platform == "win32":
 
 ID = u"id"
 NAME = u"name"
+CHILD = u"child"
+PARENT = u"parent"
