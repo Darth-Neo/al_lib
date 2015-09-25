@@ -131,6 +131,8 @@ folders = {u"Business", u"Application", u"Technology", u"Motivation", u"Implemen
 
 DIAGRAM_MODEL = u"archimate:ArchimateDiagramModel"
 DIAGRAM_OBJECT = u"archimate:DiagramObject"
+NOTE = u"archimate:Note"
+SYSTEM_SOFTWARE = u"archimate:SystemSoftware"
 
 # Reset Script for Neo4j
 from sys import platform as _platform

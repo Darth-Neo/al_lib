@@ -85,6 +85,7 @@ class ArchiLib(object):
 
     def outputXMLtoFile(self, filename=u"import_artifacts.archimate"):
         output = StringIO.StringIO()
+
         self.tree.write(output, pretty_print=True)
 
         logger.debug(u"%s" % (output.getvalue()))
@@ -561,7 +562,6 @@ class ArchiLib(object):
 
         return listNodes
 
-
     def getModelsInFolder(self, folder):
         xp = u"//folder[@name='%s']" % (folder)
 
@@ -658,7 +658,7 @@ class ArchiLib(object):
     def insertNode(self, tag, folder, attrib, new=False):
         idd = None
 
-        if new == True:
+        if new is True:
             d = self.dictND
         else:
             d = self.dictNodes
