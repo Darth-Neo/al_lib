@@ -35,8 +35,7 @@ ARCHI_TYPE = u"{%s}type" % NS_MAP[u"xsi"]
 #
 dirTest = os.getcwd() + os.sep + u"test" + os.sep
 dirRun = os.getcwd() + os.sep
-directory = dirTest
-
+directory = dirRun
 
 fileArchimateTest   = dirTest + u"Testing.archimate"
 fileArchimateModel  = directory + u'archi.archimate'
