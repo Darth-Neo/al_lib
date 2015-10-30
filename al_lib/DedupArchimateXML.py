@@ -10,15 +10,14 @@ logger.setLevel(INFO)
 from Constants import *
 from ArchiLib import ArchiLib
 
-import pytest
 
 def saveList(nl, listFile):
     try:
         logger.debug(u"Saving  : %s" % (listFile))
         with open(listFile, u"wb") as cf:
             pickle.dump(nl, cf)
-    except:
-        logger.error(str(sys.exc_info()[0]))
+    except IOError, msg:
+        logger.error(u"%s - %s" % (str(sys.exc_info()[0]), msg))
 
 def loadList(listFile):
     nl = None
@@ -30,8 +29,8 @@ def loadList(listFile):
         with open(listFile, u"rb") as cf:
             nl = pickle.load(cf)
             logger.debug(u"Loaded : %s" % (listFile))
-    except:
-        logger.error(str(sys.exc_info()[0]))
+    except IOError, msg:
+        logger.error(u"%s - %s" % (str(sys.exc_info()[0]), msg))
 
     return nl
 
@@ -51,7 +50,6 @@ def logDupElements(dupElements):
     logger.debug(u"--------Elements and Relations---------")
 
     tde = dict()
-    tdr = dict()
 
     for k, v in dupElements.items():
         if len(dupElements[k]) > 1:
@@ -211,40 +209,19 @@ def replaceDuplicateRelations(al, oldID, newID):
                         (dea.get(ARCHI_TYPE)[10:], name, id, nameElement, newID))
             dea.set(u"target", newID)
 
-@pytest.mark.Archi
-def test_DedupArchimateXML ():
+def DedupArchimate(fileArchimateDedupInput, fileArchimateDedupOutput):
 
-    fileArchimate = u"test" + os.sep + u"Testing.archimate"
+    assert (os.path.isfile(fileArchimateDedupInput) is True)
+    logger.info(u"Exists : %s" % fileArchimateDedupInput)
 
-    fileOutput = u"test" + os.sep + u"deduped.archimate"
-
-    al = ArchiLib(fileArchimate)
-
-    ae = al.findElements()
-
-    logger.info(u"Length : %d" % len(ae))
-
-    dupElements = findDups(ae)
-
-    tde, tdr = logDupElements(dupElements)
-
-    replaceDuplicateElements(al, tde)
-
-    replaceDuplicateRelations(al, tde)
-
-    al.outputXMLtoFile(fileOutput)
-
-if __name__ == u"__main__":
-
-    fileArchimate = u"/Users/morrj140/Documents/SolutionEngineering/Archimate Models/DVC v2.0.archimate"
-
-    fileOutput = u"deduped.archimate"
-
-    al = ArchiLib(fileArchimate)
+    al = ArchiLib(fileArchimateDedupInput)
+    assert (al is not None)
 
     ae = al.findElements()
 
-    logger.info(u"Length : %d" % len(ae))
+    lea = len(ae)
+    assert (lea > 0)
+    logger.info(u"Length : %d" % lea)
 
     dupElements = findDups(ae)
 
@@ -252,8 +229,15 @@ if __name__ == u"__main__":
 
     replaceDuplicateElements(al, tde)
 
-    replaceDuplicateProperties(al)
+    al.outputXMLtoFile(fileArchimateDedupOutput)
 
-    al.outputXMLtoFile(fileOutput)
+
+if __name__ == u"__main__":
+
+    fileArchimate = os.getcwd() + os.sep + u"test" + os.sep + u"testDup"
+
+    fileArchimate = u"deduped.archimate"
+
+    DedupArchimate(fileArchimate, fileArchimate)
 
 

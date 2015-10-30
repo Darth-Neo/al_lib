@@ -23,6 +23,7 @@ from nl_lib.Concepts import Concepts
 
 from Constants import *
 from ArchiLib import ArchiLib
+from DedupArchimateXML import *
 
 import pytest
 
@@ -181,7 +182,7 @@ def test_ExportArchiFolderModels(cleandir):
     for ModelToExport in listMTE:
         logger.info(u"  Model : %s" % ModelToExport)
         d = concepts.addConceptKeyType(ModelToExport, u"Model")
-        al.recurseModel(ModelToExport, d)
+        al.recurseModel(ModelToExport)
 
     al.outputCSVtoFile(concepts, fileExport=fileCSVExport)
     assert (os.path.isfile(fileCSVExport) is True)
@@ -231,7 +232,7 @@ def test_ExportArchiModel(cleandir):
     concepts = Concepts(u"Export", u"Model")
 
     for ModelToExport in listMTE:
-        al.recurseModel(ModelToExport, concepts)
+        al.recurseModel(ModelToExport)
 
     Concepts.saveConcepts(concepts, fileConceptsExport)
     assert (os.path.isfile(fileConceptsExport) is True)
@@ -256,14 +257,52 @@ def test_ZipFile(cleandir):
 
     logger.info(u"listCounts : %d" % len(listCounts))
 
+
+@pytest.fixture(scope=u"module")
+def setup():
+    fileArchimateDedupTest = u"test" + os.sep + u"testDup.archimate"
+    fileOutput = u"test" + os.sep + u"deduped.archimate"
+
+@pytest.mark.ArchiLib
+def test_DedupArchimateXML(setup):
+
+    if __name__ == u"__main__":
+        setup()
+
+    assert (os.path.isfile(fileArchimateDedupInput) is True)
+    logger.info(u"Exists : %s" % fileArchimateDedupInput)
+
+    al = ArchiLib(fileArchimateDedupInput)
+    assert (al is not None)
+
+    ml = al.logTypeCounts()
+
+    ae = al.findElements()
+
+    lea = len(ae)
+    assert (lea > 0)
+    logger.info(u"Length : %d" % lea)
+
+    dupElements = findDups(ae)
+
+    tde = logDupElements(dupElements)
+
+    replaceDuplicateElements(al, tde)
+
+    al.outputXMLtoFile(fileArchimateDedupOutput)
+
+    nl = al.logTypeCounts()
+
+
 def goArchiLib():
 
-    test_CheckForArchimateFile(cleandir)
-    test_Archi_Counts(cleandir)
-    test_ExportArchi(cleandir)
-    test_ExportArchiFolderModels(cleandir)
-    test_ExportArchiModel(cleandir)
-    test_ZipFile(cleandir)
+        test_CheckForArchimateFile(cleandir)
+        test_Archi_Counts(cleandir)
+        test_ExportArchi(cleandir)
+        test_ExportArchiFolderModels(cleandir)
+        test_ExportArchiModel(cleandir)
+        test_ZipFile(cleandir)
+        test_DedupArchimateXML(setup)
 
 if __name__ == u"__main__":
     goArchiLib()
