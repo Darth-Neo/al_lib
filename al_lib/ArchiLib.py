@@ -162,6 +162,13 @@ class ArchiLib(object):
     #
     # Model transversal functions via XPath
     #
+    def findFolder(self, tag, name):
+
+        xp = u"//folder[@name='%s' and @type='%s']" % (tag, name)
+        logger.debug(u"%s" % xp)
+        stp = self.tree.xpath(xp)
+        return stp
+
     def findRelationsByID(self, id, Target=False):
         if Target is False:
             xp = u"//element[@source='%s']" % (id)
@@ -177,7 +184,7 @@ class ArchiLib(object):
         return stp
 
     def findDiagramModel(self, id):
-        xp = u"//element[@id='" + id + "']"
+        xp = u"//element[@id='" + id + u"']"
         stp = self.tree.xpath(xp)
         return stp
 
