@@ -1,4 +1,4 @@
-__author__ = u'morrj140'
+#!/usr/bin/env python
 import os
 import sys
 import pickle
@@ -18,6 +18,8 @@ class DedupArchimateXML(object):
             self.fileArchimate = fileArchimate
 
         self.al = ArchiLib(fileArchimate)
+        self._typeCountStart = None
+        self._typeCountEnd = None
 
     @staticmethod
     def saveList(nl, listFile):
@@ -188,6 +190,7 @@ class DedupArchimateXML(object):
 
                 self._replaceDuplicateRelations(ni, elementID)
 
+
     def _replaceDuplicateRelations(self, oldID, newID):
 
         logger.info(u"Replace Duplicate Relations : %s - %s" % (oldID, newID))
@@ -220,19 +223,21 @@ class DedupArchimateXML(object):
 
             n += 1
 
-    def _replaceDuplicateProperties(self):
+    def _replaceDuplicateProperties(self, id):
 
-        properties = self.al.findProperties()
+        parent = self.al.findElementByID(id)
+        children = parent.getchildren()
 
         pd = dict()
-        for x in properties:
-            parent = x.getparent()
+        for x in children:
+            if x.tag == u"property":
+                parent = x.getparent()
 
-            if parent in pd:
-                p = pd[parent]
-                pd[parent] = p + 1
-            else:
-                pd[parent] = 1
+                if parent in pd:
+                    p = pd[parent]
+                    pd[parent] = p + 1
+                else:
+                    pd[parent] = 1
 
         logger.debug(u"Found %d properties duplicated" % len(pd))
 
@@ -278,13 +283,11 @@ class DedupArchimateXML(object):
 
         self._replaceDuplicateElements(dupElements)
 
-        # self._replaceDuplicateElements(dupRelations)
-
         self.al.outputXMLtoFile(fileArchimateOutput)
 
-        self.al = ArchiLib(fileArchimateOutput)
+        b = ArchiLib(fileArchimateOutput)
 
-        self._typeCountEnd = self.al.logTypeCounts()
+        b._typeCountEnd = self.al.logTypeCounts()
 
 
 if __name__ == u"__main__":

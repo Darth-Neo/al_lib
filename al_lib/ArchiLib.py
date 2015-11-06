@@ -478,7 +478,7 @@ class ArchiLib(object):
 
     def getElementsFromFolder(self, folder):
 
-        se = self.tree.xpath(u"folder[@name='%s']" % (folder))
+        se = self.tree.xpath(u"folder[@name='%s']" % folder)
 
         if folder == u"Views":
             return se[0]
