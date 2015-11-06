@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="abc" id="03318562" version="3.1.1">
   <folder name="Business" id="c8e72e2f" type="business">
-    <element xsi:type="archimate:BusinessActor" id="2a88ad59" name="Joe"/>
+    <element xsi:type="archimate:BusinessActor" id="2a88ad59" name="Joe">
+      <property key="GuessWhat" value="ops"/>
+    </element>
     <element xsi:type="archimate:BusinessActor" id="974e2c72" name="Mike"/>
     <element xsi:type="archimate:BusinessActor" id="1888fbfb" name="Joe"/>
     <element xsi:type="archimate:BusinessActor" id="16ed67ab" name="Mike"/>
