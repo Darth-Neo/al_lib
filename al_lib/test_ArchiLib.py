@@ -290,6 +290,15 @@ def test_DedupArchimateXML(setup):
     #assert(n == len(sl))
     logger.info(u"Passed!")
 
+@pytest.mark.ArchiLib
+def test_splitwords(setuo):
+    s = u"testOfTheEmergencyBroadcastSystem"
+
+    sl = al.splitWords(s)
+
+    logger.info(u"%s" % u", ".join([x for x in sl]))
+
+
 def goArchiLib():
 
         test_CheckForArchimateFile(cleandir)

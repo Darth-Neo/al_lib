@@ -652,9 +652,9 @@ class ArchiLib(object):
         if not ListOnly:
             for x in sorted(listCounts, key=lambda c: abs(c[1]), reverse=True):
                 if x[1] > 1:
-                    logger.info(u"  %d - %s" % (x[1], x[0]))
+                    logger.debug(u"  %d - %s" % (x[1], x[0]))
 
-            logger.info(u" ")
+            logger.debug(u" ")
 
         return listCounts
 
@@ -683,7 +683,8 @@ class ArchiLib(object):
             if value in d:
                 idd = d[value]
                 attrib[ID] = idd
-                logger.info(u"N            inFound! : %s" % idd)
+                logger.debug(u"N            inFound! : %s" % idd)
+                return idd
             else:
                 idd = self._getID()
                 d[value] = idd
@@ -694,24 +695,25 @@ class ArchiLib(object):
                 xp = u"//folder[@name='" + folder + u"']"
                 txp = self.tree.xpath(xp)
                 txp[0].insert(0, elm)
-                logger.info(u"N            inNew!   : %s" % idd)
+                logger.debug(u"N            inNew!   : %s" % idd)
 
             self.dictND[attrib[NAME]] = attrib[ID]
 
         except Exception, msg:
             self.errors += 1
-            logger.warn(u"attrib: %s" % (attrib))
+            logger.warn(u"attrib: %s" %
+                        (attrib))
             self.listErrors.append(msg)
 
         return idd
 
     def insertRel(self, tag, folder, attrib, new=False):
 
-        logger.debug(u"attrib: %s" % (attrib))
+        logger.debug(u"attrib: %s" % attrib)
 
         value = u"%s--%s" % (attrib[u"source"], attrib[u"target"])
 
-        if new == True:
+        if new is True:
             d = self.dictRel
         else:
             d = self.dictEdges
@@ -720,7 +722,7 @@ class ArchiLib(object):
             idd = d[value]
             attrib[ID] = idd
 
-            logger.info(u"R            inFound! : %s" % idd)
+            logger.debug(u"R            inFound! : %s" % idd)
         else:
             idd = self._getID()
             d[value] = idd
@@ -729,7 +731,7 @@ class ArchiLib(object):
             xp = u"//folder[@name='" + folder + u"']"
             elm = etree.Element(tag, attrib, nsmap=NS_MAP)
             self.tree.xpath(xp)[0].insert(0, elm)
-            logger.info(u"R            inNew!   : %s" % idd)
+            logger.debug(u"R            inNew!   : %s" % idd)
 
         return idd
 
@@ -749,10 +751,10 @@ class ArchiLib(object):
         prevProp = dict()
 
         for x in nd:
-            logger.info(u"             X %s" % x.attrib)
+            logger.debug(u"             X %s" % x.attrib)
             na = x.attrib
             prevProp.update(dict(na))
-            logger.info(u"             P %s" % (prevProp))
+            logger.debug(u"             P %s" % (prevProp))
 
         n = 0
         for key, value in properties.items():
@@ -767,7 +769,7 @@ class ArchiLib(object):
                 else:
                     logger.debug(u"Property already exists - %s[%s]" % (key, value))
 
-    def insertNColumns(self, folder, subfolder, fileMetaEntity):
+    def insertNColumns(self, folder, subfolder, fileMetaEntity, CaseFix=False):
 
         file = open(fileMetaEntity, u"rU")
         reader = csv.reader(file)
@@ -795,7 +797,7 @@ class ArchiLib(object):
         for row in reader:
 
             if rownum == 0:
-                rownum += 1
+
                 for col in row:
                     if col[:4] == u"Line":
                         colType = col
@@ -806,31 +808,39 @@ class ArchiLib(object):
                     else:
                         colType = u"archimate:%s" % col
                         listColumnHeaders.append(colType)
+
+                rownum = 1
                 continue
+            else:
+                rownum += 1
 
             logger.info(u"----------------------------------------------------------------------------------------")
-            logger.debug(u"rownum : %d" % rownum)
-            logger.debug(u"row    : %s" % row)
+            logger.info(u"rownum : %d" % rownum)
+            logger.info(u"row    : %s" % row)
 
             p = None
             colnum = 0
 
             lc = len(row)
             for col in row:
-                logger.info(u"    %d   [%s] %s" % (colnum, listColumnHeaders[colnum][9:], col))
-
-                CM = unicode(col).lstrip()
+                logger.info(u"%s" % col)
+                try:
+                    # logger.debug(u"    %d   [%s] %s" % (colnum, listColumnHeaders[colnum][9:], col))
+                    CM = unicode(col).lstrip()
+                except Exception, msg:
+                    logger.error(u"%s" % msg)
+                    continue
 
                 if listColumnHeaders[colnum][:8] == u"Property":
 
                     if p is None:
                         logger.error(u"Property Error")
-                        raise(Exception(u"Property Error"))
+                        # raise(Exception(u"Property Error"))
 
                     if not (p in properties):
                         properties[ID] = p
 
-                    logger.info(u"           Property[%s] : %s[%s]" % (p, listColumnHeaders[colnum][9:], CM))
+                    logger.debug(u"           Property[%s] : %s[%s]" % (p, listColumnHeaders[colnum][9:], CM))
 
                     # If column header is Property.Key, consider next one as Property.Value
                     if listColumnHeaders[colnum] == u"Property.Key":
@@ -867,7 +877,7 @@ class ArchiLib(object):
                     continue
 
                 if len(properties) > 0 and ID in properties:
-                    logger.info(u"            Add %d Properties for %s" % (len(properties), properties[ID]))
+                    logger.debug(u"            Add %d Properties for %s" % (len(properties), properties[ID]))
                     self.addProperties(properties)
                     properties = dict()
 
@@ -875,10 +885,13 @@ class ArchiLib(object):
                 # This is for a cvs which assumes value in column
                 # from a previous column
                 #
-                if CM == u"" or CM is None:
-                    logger.debug(u"Using %d[%s]" % (colnum, previous[colnum]))
-                    CM = previous[colnum]
-                else:
+                try:
+                    if CM == u"" or CM is None:
+                        logger.debug(u"Using %d[%s]" % (colnum, previous[colnum]))
+                        CM = previous[colnum]
+
+                except Exception, msg:
+                    logger.warn(u"%s" % msg)
                     previous[colnum] = CM
                     logger.debug(u"CM  %d[%s]" % (colnum, CM))
 
@@ -886,21 +899,53 @@ class ArchiLib(object):
                 # Create the attributes
                 #
                 attrib = dict()
-                attrib[NAME] = CM
-                attrib[ARCHI_TYPE] = listColumnHeaders[colnum]
-                self.insertNode(tag, folder, attrib, new=True)
-                CM_ID = attrib[ID]
+                if CaseFix is True:
+                    p = None
+                    sl = self.splitWords(CM)
+                    logger.debug(u"sl : .%s." % u"-".join([x for x in sl]))
 
-                if p is not None:
-                    attrib = dict()
-                    attrib[u"source"] = CM_ID
-                    attrib[u"target"] = p
-                    attrib[ARCHI_TYPE] = u"archimate:AssociationRelationship"
-                    logger.info(u"             Edge Inserted %s-[%s]->%s" % (CM_ID, attrib[ARCHI_TYPE], p))
-                    self.insertRel(tag, u"Relations", attrib, new=True)
-                    p = CM_ID
+                    for ns in sl:
+
+                        if len(ns) == 0:
+                            logger.warn(u"NS had length of 0")
+                            continue
+
+                        logger.debug(u"ns : .%s." % ns)
+
+                        attrib[NAME] = ns
+                        attrib[ARCHI_TYPE] = listColumnHeaders[colnum]
+                        self.insertNode(tag, folder, attrib, new=True)
+                        CM_ID = attrib[ID]
+                        logger.debug(u"             Node Inserted %s[%s]" % (CM_ID, attrib[ARCHI_TYPE]))
+
+                        if p is not None:
+                            attrib = dict()
+                            attrib[u"source"] = CM_ID
+                            attrib[u"target"] = p
+                            attrib[ARCHI_TYPE] = u"archimate:AssociationRelationship"
+                            logger.debug(u"             %s->Edge Inserted[%s]-> %s" % (p, attrib[ARCHI_TYPE], CM_ID))
+                            self.insertRel(tag, u"Relations", attrib, new=True)
+                            p = CM_ID
+                        else:
+                            p = CM_ID
+
                 else:
-                    p = CM_ID
+                    attrib[NAME] = CM
+
+                    attrib[ARCHI_TYPE] = listColumnHeaders[colnum]
+                    self.insertNode(tag, folder, attrib, new=True)
+                    CM_ID = attrib[ID]
+
+                    if p is not None:
+                        attrib = dict()
+                        attrib[u"source"] = CM_ID
+                        attrib[u"target"] = p
+                        attrib[ARCHI_TYPE] = u"archimate:AssociationRelationship"
+                        logger.debug(u"             Edge Inserted %s-[%s]->%s" % (CM_ID, attrib[ARCHI_TYPE], p))
+                        self.insertRel(tag, u"Relations", attrib, new=True)
+                        p = CM_ID
+                    else:
+                        p = CM_ID
 
                 colnum += 1
 
@@ -912,9 +957,9 @@ class ArchiLib(object):
     def insertConcepts(self, tree, concepts, n=0):
 
         for x in concepts.getConcepts().values():
-            logger.info(u"x : %s" % x.name)
+            logger.debug(u"x : %s" % x.name)
             for y in x.getConcepts().values():
-                logger.info(u"  y : %s" % y.name)
+                logger.debug(u"  y : %s" % y.name)
                 attrib = dict()
                 attrib[NAME] = x.name
                 attrib[ARCHI_TYPE] = u"archimate:WorkPackage"
@@ -964,7 +1009,7 @@ class ArchiLib(object):
 
         attributes = el.attrib
         for atr in attributes.keys():
-            logger.info(u"%sAttributes[%s]=%s" % (spaces, atr, attributes[atr]))
+            logger.debug(u"%sAttributes[%s]=%s" % (spaces, atr, attributes[atr]))
             d.addConceptKeyType(atr, attributes[atr])
 
         if el.tag == u'Documentation':
@@ -985,7 +1030,7 @@ class ArchiLib(object):
         else:
             c = concept.addConceptKeyType(tag, tag)
 
-        logger.info(u"%s%s[%s]" % (spaces, c.name, c.typeName))
+        logger.debug(u"%s%s[%s]" % (spaces, c.name, c.typeName))
 
         self.conceptAttributes(c, el, n+1)
 
@@ -1004,7 +1049,7 @@ class ArchiLib(object):
         output = StringIO.StringIO()
         xmlSheet.write(output, pretty_print=True)
 
-        logger.info(u"%s" % (output.getvalue()))
+        logger.debug(u"%s" % (output.getvalue()))
 
         f = open(fileArchiModel, u'w')
         f.write(output.getvalue())
@@ -1046,7 +1091,7 @@ class ArchiLib(object):
 
         Duplicate = False
         for xdml in dml:
-            logger.info(u"%s" % (xdml.get(NAME)))
+            logger.debug(u"%s" % (xdml.get(NAME)))
             xdml_name = xdml.get(NAME)
             if xdml_name == x.name:
                 logger.debug(u"%s Duplicate!" % xdml.get(u"id"))
@@ -1118,6 +1163,30 @@ class ArchiLib(object):
         concept.name = concept.name.replace(u"\"", u"'")
 
         return concept
+
+    @staticmethod
+    def splitWords(s):
+        sl = list()
+
+        ns = u""
+
+        for c in s:
+
+            logger.debug(u"%s" % c)
+
+            if c.isupper():
+
+                logger.debug(u"%s%s" % (ns, os.linesep))
+                sl.append(ns)
+                ns = u"%s" % (c)
+            else:
+                ns = u"%s%s" % (ns, c)
+
+        sl.append(ns)
+
+        logger.debug(u"%s" % u", ".join([x for x in sl]))
+
+        return sl
 
     @staticmethod
     def startTimer():
