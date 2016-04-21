@@ -35,10 +35,10 @@ from Constants import *
 # Main class to make life easier
 #
 class ArchiLib(object):
-    dictName  = dict()
+    dictName = dict()
     dictEdges = dict()
     dictNodes = dict()
-    dictBP    = dict()
+    dictBP = dict()
     dictCount = dict()
     tree = None
     listErrors = list()
@@ -51,7 +51,7 @@ class ArchiLib(object):
         self.errors = 0
 
         if os.path.isfile(fileArchimate) is False:
-             raise IOError(u"File not found")
+            raise IOError(u"File not found")
         else:
             if fileArchimate != None:
                 self.fileArchimate = fileArchimate
@@ -60,6 +60,7 @@ class ArchiLib(object):
 
             etree.QName(ARCHIMATE_NS, u'model')
 
+            # An Archimate file will be zipped if any images are used
             if zipfile.is_zipfile(self.fileArchimate):
 
                 logger.info(u"Zip File : %s" % self.fileArchimate)
@@ -144,7 +145,7 @@ class ArchiLib(object):
 
     def exportExcel(fileIn, fileOut, workSheetTitle=u"Scope Items"):
 
-        wb = load_workbook(filename = fileIn)
+        wb = load_workbook(filename=fileIn)
 
         ws = wb.create_sheet()
 
@@ -155,9 +156,9 @@ class ArchiLib(object):
         for col_idx in range(1, 40):
             col = get_column_letter(col_idx)
             for row in range(1, 600):
-                ws.cell(u'%s%s'%(col, row)).value = u'%s%s' % (col, row)
+                ws.cell(u'%s%s' % (col, row)).value = u'%s%s' % (col, row)
 
-        wb.save(filename = fileOut)
+        wb.save(filename=fileOut)
 
     #
     # Model transversal functions via XPath
@@ -237,7 +238,6 @@ class ArchiLib(object):
         return stp
 
     def recurseElement(self, e, concepts, n=0):
-
         n += 1
 
         try:
@@ -266,7 +266,6 @@ class ArchiLib(object):
 
         return concepts
 
-
     def recurseChildren(self, concepts, x, n=0):
         n += 1
 
@@ -275,12 +274,12 @@ class ArchiLib(object):
         xc, xname = self.getElementName(x.get(u"archimateElement"))
 
         ce = self.tree.xpath(u"//child[@id='%s']" % (xid))
-        nc  = ce[0].getchildren()
+        nc = ce[0].getchildren()
 
         #
         # Add source into concepts
         #
-        #c = concepts.addConceptKeyType(ModelToExport + ":" + xname, x.get(ARCHI_TYPE)[10:])
+        # c = concepts.addConceptKeyType(ModelToExport + ":" + xname, x.get(ARCHI_TYPE)[10:])
 
         #
         # for each RelationShip, find the Source and Target
@@ -314,9 +313,10 @@ class ArchiLib(object):
                 e = d.addConceptKeyType(tname, t.get(ARCHI_TYPE)[10:])
 
                 logger.debug(u"    %s" % yi)
-                logger.debug(u"%s,%s,%s,%s,%s,%s\n" % (sname, s.get(ARCHI_TYPE), rel.get(ARCHI_TYPE), rname, tname, t.get(ARCHI_TYPE)))
+                logger.debug(u"%s,%s,%s,%s,%s,%s\n" % (
+                sname, s.get(ARCHI_TYPE), rel.get(ARCHI_TYPE), rname, tname, t.get(ARCHI_TYPE)))
 
-            # recurseElement(t, e, tree)
+                # recurseElement(t, e, tree)
 
     def recurseDiagramObjects(self, stack, m, n=0):
 
@@ -328,7 +328,6 @@ class ArchiLib(object):
 
         logger.info(u"mc %s" % mname)
         children = m.getchildren()
-
 
         #
         # for each DiagramObject, Find the ArchimateElement
@@ -432,7 +431,7 @@ class ArchiLib(object):
                     f.write("\"%s\",\"%s\",\"%s\"%s" % (t, r, s, os.linesep))
                     self.count += 1
 
-                elif ct ==  u"archimate:Connection":
+                elif ct == u"archimate:Connection":
                     self.count += 1
                     rn = self.findElementByID(r)[0].get(ARCHI_TYPE)[10:]
 
@@ -497,7 +496,7 @@ class ArchiLib(object):
 
         attributes = el.attrib
 
-         # Not every node will have a type
+        # Not every node will have a type
         if el.tag in (u"element", u"child"):
             self.countNodeType(attributes[ARCHI_TYPE])
 
@@ -556,7 +555,7 @@ class ArchiLib(object):
 
             dns = x.get(ARCHI_TYPE)
 
-            if  dns in searchType:
+            if dns in searchType:
                 spaces = u" " * n
                 nodeName = self.getNodeName(targetNE)
                 if nodeName != u"NA":
@@ -657,7 +656,6 @@ class ArchiLib(object):
             logger.debug(u" ")
 
         return listCounts
-
 
     #
     # Node - <element xsi:type="archimate:Node" id="612a9b73" name="Linux Server"/>
@@ -769,7 +767,26 @@ class ArchiLib(object):
                 else:
                     logger.debug(u"Property already exists - %s[%s]" % (key, value))
 
+    def _getColumnHeaders(self, row, listColumnHeaders):
+        for col in row:
+            if col[:4] == u"Line":
+                colType = col
+                listColumnHeaders.append(colType)
+            elif col[:8] == u"Property":
+                colType = col
+                listColumnHeaders.append(colType)
+            else:
+                colType = u"archimate:%s" % col
+                listColumnHeaders.append(colType)
+        return listColumnHeaders
+
     def insertNColumns(self, folder, subfolder, fileMetaEntity, CaseFix=False):
+
+        folder = subfolder
+        rownum = 0
+        previous = dict()
+        listColumnHeaders = list()
+        properties = dict()
 
         file = open(fileMetaEntity, u"rU")
         reader = csv.reader(file)
@@ -784,31 +801,16 @@ class ArchiLib(object):
         attrib[NAME] = subfolder
         self.insertNode(u"folder", folder, attrib)
 
-        folder = subfolder
-
-        rownum = 0
-
-        previous = dict()
-
-        listColumnHeaders = list()
-
-        properties = dict()
-
+        #
+        # Process Rows
+        #
         for row in reader:
 
+            #
+            # Get Column Headers
+            #
             if rownum == 0:
-
-                for col in row:
-                    if col[:4] == u"Line":
-                        colType = col
-                        listColumnHeaders.append(colType)
-                    elif col[:8] == u"Property":
-                        colType = col
-                        listColumnHeaders.append(colType)
-                    else:
-                        colType = u"archimate:%s" % col
-                        listColumnHeaders.append(colType)
-
+                listColumnHeaders = self._getColumnHeaders(row, listColumnHeaders)
                 rownum = 1
                 continue
             else:
@@ -820,8 +822,10 @@ class ArchiLib(object):
 
             p = None
             colnum = 0
-
             lc = len(row)
+            #
+            # Enumerate all columns in a row
+            #
             for col in row:
                 logger.info(u"%s" % col)
                 try:
@@ -831,6 +835,9 @@ class ArchiLib(object):
                     logger.error(u"%s" % msg)
                     continue
 
+                #
+                # Properties
+                #
                 if listColumnHeaders[colnum][:8] == u"Property":
 
                     if p is None:
@@ -845,9 +852,9 @@ class ArchiLib(object):
                     # If column header is Property.Key, consider next one as Property.Value
                     if listColumnHeaders[colnum] == u"Property.Key":
                         try:
-                            if not(colnum + 1 > lc):
-                                properties[CM] = row[colnum+1]
-                                del row[colnum+1]
+                            if not (colnum + 1 > lc):
+                                properties[CM] = row[colnum + 1]
+                                del row[colnum + 1]
                                 colnum += 2
 
                         except Exception, msg:
@@ -855,11 +862,14 @@ class ArchiLib(object):
                             logger.warn(u"%s" % msg)
                             self.listErrors.append(msg)
                     else:
-                         properties[listColumnHeaders[colnum][9:]] = CM
-                         colnum += 1
+                        properties[listColumnHeaders[colnum][9:]] = CM
+                        colnum += 1
 
                     continue
 
+                #
+                # Line
+                #
                 if listColumnHeaders[colnum][:4] == u"Line":
                     logger.debug(u"Properties : %s - %s" % (listColumnHeaders[colnum][4:], CM))
 
@@ -876,14 +886,17 @@ class ArchiLib(object):
 
                     continue
 
+                #
+                # Add Properties
+                #
                 if len(properties) > 0 and ID in properties:
                     logger.debug(u"            Add %d Properties for %s" % (len(properties), properties[ID]))
                     self.addProperties(properties)
                     properties = dict()
 
                 #
-                # This is for a cvs which assumes value in column
-                # from a previous column
+                # This is for a cvs which assumes value
+                # in column from a previous column
                 #
                 try:
                     if CM == u"" or CM is None:
@@ -996,8 +1009,7 @@ class ArchiLib(object):
             for element in se:
                 self.createConcepts(concepts, element)
 
-        # concepts.logConcepts()
-
+                # concepts.logConcepts()
 
     def conceptAttributes(self, c, el, n):
         n += 1
@@ -1032,10 +1044,10 @@ class ArchiLib(object):
 
         logger.debug(u"%s%s[%s]" % (spaces, c.name, c.typeName))
 
-        self.conceptAttributes(c, el, n+1)
+        self.conceptAttributes(c, el, n + 1)
 
         for elm in el:
-            self.createConcepts(c, elm, i, n+1)
+            self.createConcepts(c, elm, i, n + 1)
 
     def createArchimate(self, fileArchiModel, fileArchiP):
         archi = Concepts.loadConcepts(fileArchiP)
@@ -1081,8 +1093,6 @@ class ArchiLib(object):
 
                 self.createArchimateElements(xmlSheet, x, element)
 
-
-
     def _checkDuplicate(self, dmID, x):
         xp = u"//element[@id='" + dmID + u"']"
         dm = self.tree.xpath(xp)[0]
@@ -1122,8 +1132,7 @@ class ArchiLib(object):
         return r.lstrip(u" ").rstrip(u" ")
 
     def cleanString(self, s):
-        return  self._cleanString(s)
-
+        return self._cleanString(s)
 
     def _cleanCapital(self, s):
         r = ""
@@ -1143,7 +1152,7 @@ class ArchiLib(object):
             if x == x.upper() and n != 0:
                 r = r + u" " + x
             else:
-                r =r + x
+                r = r + x
 
             n += 1
 
@@ -1157,7 +1166,7 @@ class ArchiLib(object):
             d[type] = 1
 
     def cleanConcept(self, concept):
-        if concept.typeName[:10] == u"archimate:" :
+        if concept.typeName[:10] == u"archimate:":
             concept.typeName = concept.typeName[10:]
 
         concept.name = concept.name.replace(u"\"", u"'")
@@ -1200,7 +1209,7 @@ class ArchiLib(object):
 
     @staticmethod
     def stopTimer(start_time):
-        #measure wall time
+        # measure wall time
         strStartTime = time.asctime(time.localtime(start_time))
         logger.info(u"Start time : %s" % strStartTime)
 
@@ -1214,12 +1223,14 @@ class ArchiLib(object):
         seconds = timeTaken % 60
         minutes = timeTaken / 60
         if minutes < 60:
-            hours   = 0
+            hours = 0
         else:
-            hours   = minutes / 60
+            hours = minutes / 60
             minutes = minutes % 60
 
-        logger.info(u"Process Time = %4.2f seconds, of %d Hours, %d Minute(s), %d Seconds" % (timeTaken, hours, minutes, seconds))
+        logger.info(u"Process Time = %4.2f seconds, of %d Hours, %d Minute(s), %d Seconds" % (
+        timeTaken, hours, minutes, seconds))
+
 
 if __name__ == u"__main__":
     fileArchimate = u"test" + os.sep + u"Testing.archimate"

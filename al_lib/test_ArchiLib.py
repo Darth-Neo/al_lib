@@ -260,22 +260,28 @@ def test_ZipFile(cleandir):
 
 @pytest.fixture(scope=u"module")
 def setup():
-    fileArchimateDedupTest = u"test" + os.sep + u"testDup.archimate"
-    fileOutput = u"test" + os.sep + u"deduped.archimate"
+    fileArchimateDedupTest = os.getcwd() + os.sep + u"test" + os.sep + u"testDup.archimate"
+    fileOutput = os.getcwd() + os.sep + u"test" + os.sep + u"deduped.archimate"
 
 @pytest.mark.ArchiLib
 def test_DedupArchimateXML(setup):
 
+    logger.debug(u"CWD %s" % os.getcwd())
+
     fileArchimate = os.getcwd() + os.sep + u"test" + os.sep + u"testDup.archimate"
     assert (os.path.isfile(fileArchimate) is True)
 
-    fileArchimateOutput = os.getcwd() + os.sep + u"dedup_test.archimate"
+    fileArchimateOutput = os.getcwd() + os.sep + u"test" + os.sep + u"dedup_test.archimate"
+    # assert (os.path.isfile(fileArchimateOutput) is True)
 
     da = DedupArchimateXML(fileArchimate)
     da.Dedup(fileArchimateOutput)
 
-    sl = da._typeCountStart
-    el = da._typeCountEnd
+    sl = da.startCounts
+    assert(sl is not None)
+
+    el = da.endCounts
+    assert(el is not None)
 
     n = 0
 
@@ -289,14 +295,6 @@ def test_DedupArchimateXML(setup):
 
     #assert(n == len(sl))
     logger.info(u"Passed!")
-
-@pytest.mark.ArchiLib
-def test_splitwords(setuo):
-    s = u"testOfTheEmergencyBroadcastSystem"
-
-    sl = al.splitWords(s)
-
-    logger.info(u"%s" % u", ".join([x for x in sl]))
 
 
 def goArchiLib():

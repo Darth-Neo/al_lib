@@ -275,6 +275,8 @@ class DedupArchimateXML(object):
 
     def Dedup(self, fileArchimateOutput=u"dedup_test.archimate"):
 
+        self.startCounts = self.al.logTypeCounts()
+
         ae = self.al.findElements()
 
         dupElements, dupRelations = self._findDuplicates(ae)
@@ -283,6 +285,8 @@ class DedupArchimateXML(object):
 
         self.al.outputXMLtoFile(fileArchimateOutput)
 
+        self.endCounts = self.al.logTypeCounts()
+
 if __name__ == u"__main__":
 
     fileArchimate = os.getcwd() + os.sep + u"test" + os.sep + u"testDup.archimate"
@@ -290,11 +294,4 @@ if __name__ == u"__main__":
 
     da = DedupArchimateXML(fileArchimate)
 
-    startCounts = da.al.logTypeCounts()
-
     da.Dedup(fileArchimateOutput)
-
-    endCounts = da.al.logTypeCounts()
-
-
-
