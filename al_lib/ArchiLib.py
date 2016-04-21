@@ -787,12 +787,12 @@ class ArchiLib(object):
         previous = dict()
         listColumnHeaders = list()
         properties = dict()
+        tag = u"element"
 
         file = open(fileMetaEntity, u"rU")
         reader = csv.reader(file)
 
-        xp = u"folder[@name='" + folder + u"']"
-        tag = u"element"
+        _xp = u"folder[@name='" + folder + u"']"
 
         # <folder name="Process" id="e23b1e50">
 
@@ -823,14 +823,17 @@ class ArchiLib(object):
             p = None
             colnum = 0
             lc = len(row)
+
             #
             # Enumerate all columns in a row
             #
             for col in row:
                 logger.info(u"%s" % col)
+
                 try:
-                    # logger.debug(u"    %d   [%s] %s" % (colnum, listColumnHeaders[colnum][9:], col))
+                    logger.debug(u"    %d   [%s] %s" % (colnum, listColumnHeaders[colnum][9:], col))
                     CM = unicode(col).lstrip()
+
                 except Exception, msg:
                     logger.error(u"%s" % msg)
                     continue
@@ -840,9 +843,9 @@ class ArchiLib(object):
                 #
                 if listColumnHeaders[colnum][:8] == u"Property":
 
+                    # Note: p is set below
                     if p is None:
-                        logger.error(u"Property Error")
-                        # raise(Exception(u"Property Error"))
+                        logger.error(u"===> Property declared before parent <===")
 
                     if not (p in properties):
                         properties[ID] = p
@@ -929,6 +932,7 @@ class ArchiLib(object):
                         attrib[ARCHI_TYPE] = listColumnHeaders[colnum]
                         self.insertNode(tag, folder, attrib, new=True)
                         CM_ID = attrib[ID]
+
                         logger.debug(u"             Node Inserted %s[%s]" % (CM_ID, attrib[ARCHI_TYPE]))
 
                         if p is not None:
@@ -944,7 +948,6 @@ class ArchiLib(object):
 
                 else:
                     attrib[NAME] = CM
-
                     attrib[ARCHI_TYPE] = listColumnHeaders[colnum]
                     self.insertNode(tag, folder, attrib, new=True)
                     CM_ID = attrib[ID]
@@ -1123,12 +1126,14 @@ class ArchiLib(object):
 
     def _cleanString(self, s):
         r = u""
+
         if s == None:
             return r
 
         for x in s.lstrip(u" "):
             if x.isalnum() or x in (u" ", u"-", u"."):
                 r = r + x
+
         return r.lstrip(u" ").rstrip(u" ")
 
     def cleanString(self, s):
